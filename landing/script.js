@@ -13,7 +13,7 @@ for (const btn of document.querySelectorAll("#buy, #buy-bottom, #buy-nav")) {
 const ORB_STATES = [
   { id: "gray", label: "Idle. No background agent." },
   { id: "amber", label: "Running. You are somewhere else." },
-  { id: "rose", label: "Blocked. Agent needs input." },
+  { id: "rose", label: "Blocked. Approval needed." },
   { id: "green", label: "Done. Time to come back." },
 ];
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Codex: Stop → done (or action if last message looks like a question)
+# Codex: Stop → done
 set -euo pipefail
 DIR="$(cd "$(dirname "$0")" && pwd)"
 export PATH="/opt/homebrew/bin:/usr/local/bin:$HOME/.nvm/versions/node/$(ls "$HOME/.nvm/versions/node" 2>/dev/null | tail -1)/bin:$PATH"

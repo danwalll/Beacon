@@ -20,24 +20,6 @@ const BASE_DIR = path.join(
 const SCAN_MS = 10_000;
 const IDLE_MS = 120_000;
 
-function looksLikeNeedsAction(text) {
-  if (!text || typeof text !== "string") return false;
-  const t = text.trim();
-  if (!t) return false;
-  const tail = t.slice(-1200);
-  if (/\?\s*$/m.test(tail)) return true;
-  if ((tail.match(/\?/g) || []).length >= 2) return true;
-  const patterns = [
-    /\b(should i|shall i|do you want|would you like|want me to|can you confirm)\b/i,
-    /\b(which (one|option|approach|path)|what would you|how would you like)\b/i,
-    /\b(before (i|we) continue|let me know|your call|up to you)\b/i,
-    /\b(pick one|choose one|reply with|tell me (if|whether|which))\b/i,
-    /\b(are you (ok|okay|fine) with|does that work|sound good)\b/i,
-    /\b(waiting (on|for) (you|your)|need (your|a) (decision|answer|choice))\b/i,
-  ];
-  return patterns.some((re) => re.test(tail));
-}
-
 function extractAssistantText(message) {
   if (!message || !Array.isArray(message.content)) return "";
   return message.content
@@ -79,8 +61,7 @@ function stateFromAuditRow(row) {
     }
     const text = extractAssistantText(row.message);
     if (text && row.message && row.message.stop_reason) {
-      const state = looksLikeNeedsAction(text) ? "action" : "done";
-      return { state, label: state === "action" ? "needs you" : null };
+      return { state: "done" };
     }
     if (text) return { state: "working" };
     return { state: "working" };
@@ -96,8 +77,7 @@ function stateFromAuditRow(row) {
     if (denied) {
       return { state: "action", label: "needs approval" };
     }
-    const state = looksLikeNeedsAction(text) ? "action" : "done";
-    return { state, label: state === "action" ? "needs you" : null };
+    return { state: "done" };
   }
 
   if (row.type === "system") {
@@ -328,7 +308,6 @@ function createClaudeDesktopWatcher(options = {}) {
 
 module.exports = {
   createClaudeDesktopWatcher,
-  looksLikeNeedsAction,
   stateFromAuditRow,
   BASE_DIR,
 };

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Cursor: after agent response — cache text so stop can detect questions
+# Cursor: after agent response — cache text for debugging
 set -euo pipefail
 DIR="$(cd "$(dirname "$0")" && pwd)"
 export PATH="/opt/homebrew/bin:/usr/local/bin:$HOME/.nvm/versions/node/$(ls "$HOME/.nvm/versions/node" 2>/dev/null | tail -1)/bin:$PATH"

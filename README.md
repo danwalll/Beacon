@@ -1,6 +1,6 @@
 # Beacon
 
-Amber = working · Rose = needs you · Green = done
+Amber = working · Rose = needs approval · Green = done
 
 Floating orbs on your desktop — one per app — so you always know when an AI agent needs you.
 
