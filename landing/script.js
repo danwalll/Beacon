@@ -48,8 +48,7 @@ function cycleOrb() {
 setOrbState(0);
 setInterval(cycleOrb, 2800);
 
-// ── ROI calculator ────────────────────────────────────────────────
-const PRICE = 3.99;
+// Calculator
 const WORK_DAYS = 250;
 
 const sessions = document.getElementById("sessions");
@@ -57,8 +56,7 @@ const notice = document.getElementById("notice");
 const sessionsOut = document.getElementById("sessions-out");
 const noticeOut = document.getElementById("notice-out");
 const savingsEl = document.getElementById("savings");
-const savingsDetailEl = document.getElementById("savings-detail");
-const roiEl = document.getElementById("roi");
+const hoursEl = document.getElementById("hours");
 const ratePills = document.querySelectorAll(".rate-pill");
 
 let hourly = 100;
@@ -79,12 +77,9 @@ function recalc() {
 
   const hoursLost = (sessionsPerDay * WORK_DAYS * noticeMin) / 60;
   const dollars = hoursLost * hourly;
-  const roi = Math.max(1, Math.round(dollars / PRICE));
 
   savingsEl.textContent = money(dollars);
-  savingsDetailEl.textContent = `recovered per year, about ${Math.round(hoursLost)} hours back`;
-  roiEl.textContent =
-    roi >= 1000 ? `${Math.round(roi / 100) / 10}k×` : `${roi}×`;
+  hoursEl.textContent = String(Math.round(hoursLost));
 }
 
 sessions.addEventListener("input", recalc);

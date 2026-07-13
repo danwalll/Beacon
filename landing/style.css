@@ -661,13 +661,34 @@ body {
   border-top: 0.5px solid var(--separator);
 }
 
+.calc-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.calc-stat {
+  padding: 8px 4px;
+}
+
 .result-value {
-  font-size: clamp(2.25rem, 7vw, 3rem);
+  font-size: clamp(1.75rem, 6vw, 2.5rem);
   font-weight: 700;
   letter-spacing: -0.04em;
   color: var(--green);
   line-height: 1;
   font-variant-numeric: tabular-nums;
+}
+
+.result-value--hours {
+  color: var(--text);
+}
+
+.result-label {
+  margin-top: 6px;
+  font-size: 13px;
+  letter-spacing: -0.01em;
+  color: var(--text-secondary);
 }
 
 .result-sub {
