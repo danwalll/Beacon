@@ -108,6 +108,40 @@ function connectionsModule() {
   return require(candidate);
 }
 
+function claudeDesktopWatcherModule() {
+  const candidate = app.isPackaged
+    ? path.join(process.resourcesPath, "claude-desktop-watcher.js")
+    : path.join(__dirname, "..", "scripts", "claude-desktop-watcher.js");
+  try {
+    delete require.cache[require.resolve(candidate)];
+  } catch {
+    delete require.cache[candidate];
+  }
+  return require(candidate);
+}
+
+/** @type {{ stop: () => void } | null} */
+let claudeDesktopWatcher = null;
+
+function startClaudeDesktopWatcher() {
+  if (process.platform !== "darwin") return;
+  try {
+    const mod = claudeDesktopWatcherModule();
+    claudeDesktopWatcher = mod.createClaudeDesktopWatcher({
+      port: PORT,
+      onStatus: (body) => setStatus(body),
+    });
+    const result = claudeDesktopWatcher.start();
+    if (result.ok) {
+      console.log(
+        `Claude Desktop watcher on (${result.files} session file(s) tracked)`
+      );
+    }
+  } catch (err) {
+    console.error("Claude Desktop watcher failed to start:", err);
+  }
+}
+
 function prefsPath() {
   return path.join(app.getPath("userData"), "prefs.json");
 }
@@ -1680,6 +1714,7 @@ if (!gotLock) {
 
     createTray();
     createWindow();
+    startClaudeDesktopWatcher();
     await runGatekeeperGuide();
     await runFirstLaunchSetup();
   });
@@ -1689,6 +1724,10 @@ if (!gotLock) {
   });
 
   app.on("before-quit", () => {
+    if (claudeDesktopWatcher) {
+      claudeDesktopWatcher.stop();
+      claudeDesktopWatcher = null;
+    }
     for (const client of sseClients) {
       client.end();
     }

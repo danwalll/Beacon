@@ -32,8 +32,8 @@ const PROVIDERS = [
   {
     id: "claude",
     name: "Claude",
-    blurb: "Works with Claude Code on your Mac.",
-    tip: "Restart Claude Code once after turning this on.",
+    blurb: "Claude Code in Terminal and Claude Desktop Cowork (skills & tasks).",
+    tip: "Cowork is automatic. Restart Claude Code once if you use the CLI too.",
     focus: ["Claude", "Claude Code", "Terminal", "iTerm2", "Warp", "Ghostty"],
     kind: "hooks",
   },

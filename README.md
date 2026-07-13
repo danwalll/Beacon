@@ -53,7 +53,7 @@ Hooks in `~/.agent-beacon/hooks` notify a local server (`127.0.0.1:17373`) when 
 |---|---|
 | **Cursor** | One-click hooks |
 | **ChatGPT** | Codex hooks (`~/.codex/hooks.json`) |
-| **Claude** | Claude Code hooks |
+| **Claude** | Claude Code hooks + Desktop Cowork watcher (`audit.jsonl`) |
 | **Custom** | HTTP POST to `/status` |
 
 Hooks don’t depend on this repo path after install.

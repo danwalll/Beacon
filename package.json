@@ -50,6 +50,10 @@
       {
         "from": "scripts/connections.js",
         "to": "connections.js"
+      },
+      {
+        "from": "scripts/claude-desktop-watcher.js",
+        "to": "claude-desktop-watcher.js"
       }
     ],
     "directories": {
