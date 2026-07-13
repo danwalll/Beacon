@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Beacon — Know when your background agent needs you</title>
+    <title>Beacon for Mac</title>
     <meta
       name="description"
       content="For Mac users who spin up AI agents and walk away. A floating orb lights up when Cursor, Claude Cowork, or Codex finishes. $3.99 once."
@@ -50,8 +50,7 @@
     </svg>
     <nav class="topnav" aria-label="Site">
       <a class="brand" href="#">Beacon</a>
-      <!-- Lemon Squeezy checkout URL is set in script.js (CHECKOUT_URL) -->
-      <a class="btn-dark btn-sm" id="buy-nav" href="#">Get Beacon — $3.99</a>
+      <a class="btn-primary btn-sm" id="buy-nav" href="#">Get Beacon for $3.99</a>
     </nav>
 
     <header class="hero">
@@ -60,14 +59,14 @@
           <p class="hero-kicker">For people who orchestrate agents and walk away</p>
           <h1>Spin up the agent. Switch windows. Know when it’s done.</h1>
           <p class="hero-sub">
-            Not everyone who uses Claude — the slice that delegates background tasks,
-            runs Cowork, and keeps working elsewhere. That workflow is growing every month.
+            Not everyone who uses Claude. If you delegate background tasks,
+            run Cowork, and keep working elsewhere, this is for you.
           </p>
 
           <div class="hero-card">
-            <a class="btn-dark btn-block" id="buy" href="#">Get Beacon — $3.99</a>
+            <a class="btn-primary btn-block" id="buy" href="#">Get Beacon for $3.99</a>
             <p class="hero-card-fine">
-              One-time purchase · Instant download · Runs locally on your Mac
+              One time purchase. Instant download. Runs locally on your Mac.
             </p>
           </div>
         </div>
@@ -97,14 +96,13 @@
     </header>
 
     <main class="below-fold">
-      <!-- Supported workflows -->
       <section class="workflows" aria-labelledby="workflows-title">
-        <h2 id="workflows-title">Walk-away workflows</h2>
-        <p class="workflows-lede">
-          You start the agent, leave the app, and come back when it pings you.
-          Beacon watches the Mac apps that actually run in the background.
+        <h2 id="workflows-title" class="section-title">Walk away workflows</h2>
+        <p class="section-lede">
+          Start the agent, leave the app, come back when it pings you.
+          Beacon watches the Mac apps that run in the background.
         </p>
-        <ul class="workflow-grid">
+        <ul class="workflow-group">
           <li class="workflow-card">
             <div class="workflow-head">
               <span class="workflow-brand">
@@ -113,13 +111,13 @@
               </span>
               <span class="workflow-badge workflow-badge--yes">Supported</span>
             </div>
-            <p>Composer and agent mode while you’re in another repo or window.</p>
+            <p>Composer and agent mode while you are in another repo or window.</p>
           </li>
           <li class="workflow-card">
             <div class="workflow-head">
               <span class="workflow-brand">
                 <svg class="workflow-logo" aria-hidden="true"><use href="#logo-claude"/></svg>
-                <strong>Claude Desktop · Cowork</strong>
+                <strong>Claude Desktop, Cowork</strong>
               </span>
               <span class="workflow-badge workflow-badge--yes">Supported</span>
             </div>
@@ -139,20 +137,20 @@
             <div class="workflow-head">
               <span class="workflow-brand">
                 <svg class="workflow-logo" aria-hidden="true"><use href="#logo-chatgpt"/></svg>
-                <strong>ChatGPT · Codex</strong>
+                <strong>ChatGPT, Codex</strong>
               </span>
               <span class="workflow-badge workflow-badge--yes">Supported</span>
             </div>
-            <p>Codex on your Mac — kick off a run and get back to your day.</p>
+            <p>Codex on your Mac. Kick off a run and get back to your day.</p>
           </li>
         </ul>
 
         <h3 class="workflows-subtitle" id="workflows-no-title">Not for babysitting chat</h3>
-        <p class="workflows-lede workflows-lede--no">
-          If you’re staring at the thread waiting for each reply, you don’t need Beacon.
+        <p class="section-lede workflows-lede--no">
+          If you are staring at the thread waiting for each reply, you do not need Beacon.
         </p>
-        <ul class="workflow-grid workflow-grid--no" aria-labelledby="workflows-no-title">
-          <li class="workflow-card workflow-card--no">
+        <ul class="workflow-group workflow-group--muted" aria-labelledby="workflows-no-title">
+          <li class="workflow-card">
             <div class="workflow-head">
               <span class="workflow-brand">
                 <svg class="workflow-logo" aria-hidden="true"><use href="#logo-chat"/></svg>
@@ -160,9 +158,9 @@
               </span>
               <span class="workflow-badge workflow-badge--no">Not supported</span>
             </div>
-            <p>Live back-and-forth in the Claude app — you’re already there.</p>
+            <p>Live chat in the Claude app. You are already there.</p>
           </li>
-          <li class="workflow-card workflow-card--no">
+          <li class="workflow-card">
             <div class="workflow-head">
               <span class="workflow-brand">
                 <svg class="workflow-logo" aria-hidden="true"><use href="#logo-chat"/></svg>
@@ -172,17 +170,17 @@
             </div>
             <p>Skills inside Chat threads without Cowork’s background agent loop.</p>
           </li>
-          <li class="workflow-card workflow-card--no">
+          <li class="workflow-card">
             <div class="workflow-head">
               <span class="workflow-brand">
                 <svg class="workflow-logo" aria-hidden="true"><use href="#logo-browser"/></svg>
-                <strong>Browser-only AI</strong>
+                <strong>Browser only AI</strong>
               </span>
               <span class="workflow-badge workflow-badge--no">Not supported</span>
             </div>
-            <p>claude.ai, chatgpt.com, or other tabs — no Mac app hooks to watch.</p>
+            <p>claude.ai, chatgpt.com, and other tabs. No Mac app hooks to watch.</p>
           </li>
-          <li class="workflow-card workflow-card--no">
+          <li class="workflow-card">
             <div class="workflow-head">
               <span class="workflow-brand">
                 <svg class="workflow-logo" aria-hidden="true"><use href="#logo-windows"/></svg>
@@ -190,27 +188,26 @@
               </span>
               <span class="workflow-badge workflow-badge--no">Not supported</span>
             </div>
-            <p>Beacon is macOS only — Apple Silicon recommended.</p>
+            <p>Beacon is macOS only. Apple Silicon recommended.</p>
           </li>
         </ul>
       </section>
 
-      <!-- How it works -->
       <section class="how" aria-labelledby="how-title">
-        <h2 id="how-title">Set up once, then orchestrate</h2>
+        <h2 id="how-title" class="section-title">Set up once, then orchestrate</h2>
         <ol class="steps">
           <li class="step">
             <span class="step-num">1</span>
             <div>
-              <strong>Buy &amp; install</strong>
+              <strong>Buy and install</strong>
               <p>Checkout takes a minute. Download from email, open the .dmg, drag to Applications.</p>
             </div>
           </li>
           <li class="step">
             <span class="step-num">2</span>
             <div>
-              <strong>Auto-connects your agents</strong>
-              <p>First launch links Cursor, Claude Cowork, and Codex — no manual hook setup.</p>
+              <strong>Auto connects your agents</strong>
+              <p>First launch links Cursor, Claude Cowork, and Codex. No manual hook setup.</p>
             </div>
           </li>
           <li class="step">
@@ -223,9 +220,8 @@
         </ol>
       </section>
 
-      <!-- ROI calculator -->
       <section class="calc" aria-labelledby="calc-title">
-        <h2 id="calc-title">What walking away costs you</h2>
+        <h2 id="calc-title" class="section-title">What walking away costs you</h2>
         <p class="calc-note">
           Each background run you notice late is a few minutes of dead air.
           Tune this to how you actually orchestrate agents.
@@ -255,26 +251,26 @@
 
         <div class="calc-result">
           <p class="result-value" id="savings">$20,000</p>
-          <p class="result-sub" id="savings-detail">recovered per year · ~200 hours back</p>
+          <p class="result-sub" id="savings-detail">recovered per year, about 200 hours back</p>
           <p class="calc-payoff">
-            Beacon is <strong>$3.99</strong> once —
+            Beacon is <strong>$3.99</strong> once.
             <span id="roi">5,000×</span> ROI
           </p>
         </div>
 
-        <p class="calc-assume">250 work days · conservative 2 min notice lag</p>
+        <p class="calc-assume">250 work days, conservative 2 min notice lag</p>
       </section>
 
       <section class="cta-bottom">
-        <a class="btn-dark" id="buy-bottom" href="#">Get Beacon — $3.99</a>
+        <a class="btn-primary" id="buy-bottom" href="#">Get Beacon for $3.99</a>
       </section>
 
       <footer>
         <p>
-          macOS 13+ · Apple Silicon · Cursor, Claude Cowork, Claude Code, Codex
+          macOS 13 or later. Apple Silicon. Cursor, Claude Cowork, Claude Code, Codex.
         </p>
         <p class="footer-fine">
-          Built for async agent workflows on Mac. First open: right-click → Open if macOS asks. v1.1.5
+          Built for async agent workflows on Mac. First open: right click, then Open if macOS asks. v1.1.5
         </p>
       </footer>
     </main>

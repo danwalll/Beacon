@@ -11,10 +11,10 @@ for (const btn of document.querySelectorAll("#buy, #buy-bottom, #buy-nav")) {
 
 // ── Orb demo cycle ────────────────────────────────────────────────
 const ORB_STATES = [
-  { id: "gray", label: "Idle — no background agent" },
-  { id: "amber", label: "Running — you’re somewhere else" },
-  { id: "rose", label: "Blocked — agent needs input" },
-  { id: "green", label: "Done — time to come back" },
+  { id: "gray", label: "Idle. No background agent." },
+  { id: "amber", label: "Running. You are somewhere else." },
+  { id: "rose", label: "Blocked. Agent needs input." },
+  { id: "green", label: "Done. Time to come back." },
 ];
 
 const orbDemo = document.getElementById("orb-demo");
@@ -82,7 +82,7 @@ function recalc() {
   const roi = Math.max(1, Math.round(dollars / PRICE));
 
   savingsEl.textContent = money(dollars);
-  savingsDetailEl.textContent = `recovered per year · ~${Math.round(hoursLost)} hours back`;
+  savingsDetailEl.textContent = `recovered per year, about ${Math.round(hoursLost)} hours back`;
   roiEl.textContent =
     roi >= 1000 ? `${Math.round(roi / 100) / 10}k×` : `${roi}×`;
 }
