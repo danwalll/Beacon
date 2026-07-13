@@ -519,10 +519,52 @@ body {
   cursor: pointer;
 }
 
+.calc-rate-field {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 2px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.calc-rate-prefix,
+.calc-rate-suffix {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.calc-rate-input {
+  width: 4.5ch;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  -moz-appearance: textfield;
+}
+
+.calc-rate-input:focus {
+  outline: none;
+}
+
+.calc-rate-input::-webkit-outer-spin-button,
+.calc-rate-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
 .calc-rates {
   display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 2px;
-  margin-top: 20px;
+  margin-top: 12px;
   padding: 2px;
   background: var(--fill);
   border-radius: 9px;

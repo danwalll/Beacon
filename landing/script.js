@@ -55,9 +55,30 @@ const sessionsOut = document.getElementById("sessions-out");
 const noticeOut = document.getElementById("notice-out");
 const savingsEl = document.getElementById("savings");
 const hoursEl = document.getElementById("hours");
+const hourlyInput = document.getElementById("hourly");
 const ratePills = document.querySelectorAll(".rate-pill");
 
-let hourly = 100;
+const PRESET_RATES = new Set(
+  [...ratePills].map((pill) => Number(pill.dataset.rate))
+);
+
+function syncRatePills(value) {
+  let matched = false;
+  for (const pill of ratePills) {
+    const isMatch = Number(pill.dataset.rate) === value;
+    pill.classList.toggle("is-active", isMatch);
+    if (isMatch) matched = true;
+  }
+  if (!matched) {
+    for (const pill of ratePills) pill.classList.remove("is-active");
+  }
+}
+
+function readHourly() {
+  const value = Number(hourlyInput.value);
+  if (!Number.isFinite(value)) return 100;
+  return Math.min(500, Math.max(25, Math.round(value)));
+}
 
 function money(n) {
   return n.toLocaleString("en-US", {
@@ -74,6 +95,7 @@ function recalc() {
   noticeOut.textContent = `${noticeMin} min`;
 
   const hoursLost = (sessionsPerDay * WORK_DAYS * noticeMin) / 60;
+  const hourly = readHourly();
   const dollars = hoursLost * hourly;
 
   savingsEl.textContent = money(dollars);
@@ -83,11 +105,22 @@ function recalc() {
 sessions.addEventListener("input", recalc);
 notice.addEventListener("input", recalc);
 
+hourlyInput.addEventListener("input", () => {
+  syncRatePills(readHourly());
+  recalc();
+});
+
+hourlyInput.addEventListener("blur", () => {
+  hourlyInput.value = String(readHourly());
+  syncRatePills(readHourly());
+  recalc();
+});
+
 for (const pill of ratePills) {
   pill.addEventListener("click", () => {
-    for (const p of ratePills) p.classList.remove("is-active");
-    pill.classList.add("is-active");
-    hourly = Number(pill.dataset.rate);
+    const rate = Number(pill.dataset.rate);
+    hourlyInput.value = String(rate);
+    syncRatePills(rate);
     recalc();
   });
 }
