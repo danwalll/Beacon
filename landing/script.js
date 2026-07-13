@@ -58,10 +58,6 @@ const hoursEl = document.getElementById("hours");
 const hourlyInput = document.getElementById("hourly");
 const ratePills = document.querySelectorAll(".rate-pill");
 
-const PRESET_RATES = new Set(
-  [...ratePills].map((pill) => Number(pill.dataset.rate))
-);
-
 function syncRatePills(value) {
   let matched = false;
   for (const pill of ratePills) {
