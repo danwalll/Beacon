@@ -19,7 +19,6 @@ const ORB_STATES = [
 
 const orbDemo = document.getElementById("orb-demo");
 const demoLabel = document.getElementById("demo-label");
-const stateCards = document.querySelectorAll(".state-card");
 const menubarBeacon = document.querySelector(".menubar-beacon");
 let stateIndex = 0;
 
@@ -27,10 +26,6 @@ function setOrbState(index) {
   const state = ORB_STATES[index];
   orbDemo.dataset.state = state.id;
   demoLabel.textContent = state.label;
-
-  stateCards.forEach((card) => {
-    card.classList.toggle("active", card.dataset.state === state.id);
-  });
 
   if (menubarBeacon) {
     const root = document.documentElement;

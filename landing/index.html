@@ -11,6 +11,43 @@
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
+    <svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
+      <symbol id="logo-cursor" viewBox="0 0 24 24">
+        <rect x="3" y="3" width="18" height="18" rx="4" fill="#1a1a1a"/>
+        <path d="M8 16V8l8 4-8 4z" fill="#fff"/>
+      </symbol>
+      <symbol id="logo-claude" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="10" fill="#d97757"/>
+        <path fill="#fff" d="M12 5.5 13.4 10h4.6l-3.7 2.7 1.4 4.6L12 14.6 8.3 17.3l1.4-4.6L6 10h4.6L12 5.5z"/>
+      </symbol>
+      <symbol id="logo-chatgpt" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="10" fill="#10a37f"/>
+        <path fill="#fff" d="M12 6.2c2.8 0 4.3 1.5 4.3 3.4 0 1.4-.8 2.4-2.1 2.9 1.5.5 2.4 1.7 2.4 3.3 0 2.2-1.8 3.6-4.6 3.6-1.3 0-2.4-.3-3.3-.9l.7-1.3c.7.5 1.5.7 2.5.7 1.5 0 2.4-.7 2.4-1.8 0-1.1-.9-1.7-2.6-1.7h-1.1V12h1c1.6 0 2.4-.6 2.4-1.6 0-1-.9-1.6-2.3-1.6-1 0-1.8.3-2.4.8l-.8-1.2c.9-.7 2.1-1 3.3-1z"/>
+      </symbol>
+      <symbol id="logo-terminal" viewBox="0 0 24 24">
+        <rect x="3" y="5" width="18" height="14" rx="3" fill="#3a3a3c"/>
+        <path stroke="#fff" stroke-width="1.6" stroke-linecap="round" d="M7 10l3 2-3 2"/>
+        <path stroke="#8e8e93" stroke-width="1.6" stroke-linecap="round" d="M12 14h5"/>
+      </symbol>
+      <symbol id="logo-chat" viewBox="0 0 24 24">
+        <rect x="3" y="4" width="18" height="13" rx="4" fill="#aeaeb2"/>
+        <path fill="#f5f5f7" d="M8 10h8v1.5H8V10zm0 3h5v1.5H8V13z"/>
+        <path fill="#aeaeb2" d="M9 20l3-3h5a3 3 0 0 0 3-3V7a3 3 0 0 0-3-3H6a3 3 0 0 0-3 3v7a3 3 0 0 0 3 3h3z"/>
+      </symbol>
+      <symbol id="logo-browser" viewBox="0 0 24 24">
+        <rect x="3" y="5" width="18" height="14" rx="3" fill="#aeaeb2"/>
+        <circle cx="7" cy="9" r="1" fill="#fff"/>
+        <circle cx="10" cy="9" r="1" fill="#fff"/>
+        <circle cx="13" cy="9" r="1" fill="#fff"/>
+        <rect x="6" y="12" width="12" height="4" rx="1" fill="#fff" opacity=".9"/>
+      </symbol>
+      <symbol id="logo-windows" viewBox="0 0 24 24">
+        <rect x="3" y="4" width="8" height="8" fill="#7a7a7d"/>
+        <rect x="13" y="4" width="8" height="8" fill="#7a7a7d"/>
+        <rect x="3" y="14" width="8" height="6" fill="#7a7a7d"/>
+        <rect x="13" y="14" width="8" height="6" fill="#7a7a7d"/>
+      </symbol>
+    </svg>
     <nav class="topnav" aria-label="Site">
       <a class="brand" href="#">Beacon</a>
       <!-- Lemon Squeezy checkout URL is set in script.js (CHECKOUT_URL) -->
@@ -56,74 +93,98 @@
     </header>
 
     <main class="below-fold">
-      <!-- State cards -->
-      <section class="states" aria-labelledby="states-title">
-        <h2 id="states-title" class="visually-hidden">Orb states</h2>
-        <ul class="state-grid">
-          <li class="state-card" data-state="gray">
-            <span class="state-dot state-dot--gray"></span>
-            <strong>Gray</strong>
-            <span>Idle — no agent running</span>
-          </li>
-          <li class="state-card" data-state="amber">
-            <span class="state-dot state-dot--amber"></span>
-            <strong>Amber</strong>
-            <span>Working — agent is thinking</span>
-          </li>
-          <li class="state-card" data-state="rose">
-            <span class="state-dot state-dot--rose"></span>
-            <strong>Rose</strong>
-            <span>Needs you — waiting for input</span>
-          </li>
-          <li class="state-card" data-state="green">
-            <span class="state-dot state-dot--green"></span>
-            <strong>Green</strong>
-            <span>Done — task finished</span>
-          </li>
-        </ul>
-      </section>
-
       <!-- Supported workflows -->
       <section class="workflows" aria-labelledby="workflows-title">
         <h2 id="workflows-title">Works with</h2>
         <p class="workflows-lede">
-          Beacon watches <strong>agents that run work in the background</strong> — not
-          everyday chat you’re already staring at.
+          Background agents on your Mac — while you work somewhere else.
         </p>
         <ul class="workflow-grid">
           <li class="workflow-card">
             <div class="workflow-head">
-              <strong>Cursor</strong>
-              <span class="workflow-badge">Supported</span>
+              <span class="workflow-brand">
+                <svg class="workflow-logo" aria-hidden="true"><use href="#logo-cursor"/></svg>
+                <strong>Cursor</strong>
+              </span>
+              <span class="workflow-badge workflow-badge--yes">Supported</span>
             </div>
             <p>Composer and agent chats while you code in another window.</p>
           </li>
           <li class="workflow-card">
             <div class="workflow-head">
-              <strong>Claude Desktop · Cowork</strong>
-              <span class="workflow-badge">Supported</span>
+              <span class="workflow-brand">
+                <svg class="workflow-logo" aria-hidden="true"><use href="#logo-claude"/></svg>
+                <strong>Claude Desktop · Cowork</strong>
+              </span>
+              <span class="workflow-badge workflow-badge--yes">Supported</span>
             </div>
             <p>Delegated tasks, skills, and file work in the Claude Mac app.</p>
           </li>
           <li class="workflow-card">
             <div class="workflow-head">
-              <strong>Claude Code</strong>
-              <span class="workflow-badge">Supported</span>
+              <span class="workflow-brand">
+                <svg class="workflow-logo" aria-hidden="true"><use href="#logo-terminal"/></svg>
+                <strong>Claude Code</strong>
+              </span>
+              <span class="workflow-badge workflow-badge--yes">Supported</span>
             </div>
             <p>The coding agent in Terminal, iTerm, Warp, or Ghostty.</p>
           </li>
           <li class="workflow-card">
             <div class="workflow-head">
-              <strong>ChatGPT · Codex</strong>
-              <span class="workflow-badge">Supported</span>
+              <span class="workflow-brand">
+                <svg class="workflow-logo" aria-hidden="true"><use href="#logo-chatgpt"/></svg>
+                <strong>ChatGPT · Codex</strong>
+              </span>
+              <span class="workflow-badge workflow-badge--yes">Supported</span>
             </div>
             <p>ChatGPT’s coding agent on your Mac.</p>
           </li>
         </ul>
-        <p class="workflows-note">
-          Not for casual Claude <em>Chat</em> threads — if you’re already in the
-          conversation, you don’t need an orb.
-        </p>
+
+        <h3 class="workflows-subtitle" id="workflows-no-title">Doesn’t work with</h3>
+        <ul class="workflow-grid workflow-grid--no" aria-labelledby="workflows-no-title">
+          <li class="workflow-card workflow-card--no">
+            <div class="workflow-head">
+              <span class="workflow-brand">
+                <svg class="workflow-logo" aria-hidden="true"><use href="#logo-chat"/></svg>
+                <strong>Claude Chat</strong>
+              </span>
+              <span class="workflow-badge workflow-badge--no">Not supported</span>
+            </div>
+            <p>Back-and-forth conversation in the Claude app — you’re already watching it.</p>
+          </li>
+          <li class="workflow-card workflow-card--no">
+            <div class="workflow-head">
+              <span class="workflow-brand">
+                <svg class="workflow-logo" aria-hidden="true"><use href="#logo-chat"/></svg>
+                <strong>Skills in Chat only</strong>
+              </span>
+              <span class="workflow-badge workflow-badge--no">Not supported</span>
+            </div>
+            <p>Skills that run inside Chat threads, without Cowork’s agent loop.</p>
+          </li>
+          <li class="workflow-card workflow-card--no">
+            <div class="workflow-head">
+              <span class="workflow-brand">
+                <svg class="workflow-logo" aria-hidden="true"><use href="#logo-browser"/></svg>
+                <strong>Browser-only AI</strong>
+              </span>
+              <span class="workflow-badge workflow-badge--no">Not supported</span>
+            </div>
+            <p>claude.ai, chatgpt.com, or other tabs — no Mac app hooks to watch.</p>
+          </li>
+          <li class="workflow-card workflow-card--no">
+            <div class="workflow-head">
+              <span class="workflow-brand">
+                <svg class="workflow-logo" aria-hidden="true"><use href="#logo-windows"/></svg>
+                <strong>Windows or Linux</strong>
+              </span>
+              <span class="workflow-badge workflow-badge--no">Not supported</span>
+            </div>
+            <p>Beacon is macOS only — Apple Silicon recommended.</p>
+          </li>
+        </ul>
       </section>
 
       <!-- How it works -->
