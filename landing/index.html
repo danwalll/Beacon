@@ -219,7 +219,7 @@
       <section class="calc" aria-labelledby="calc-title">
         <h2 id="calc-title">What waiting costs you</h2>
         <p class="calc-note">
-          Every missed “agent done” costs a few minutes of focus. Drag to your day.
+          Agents run while you do other work. This is how long you’re late noticing each finish.
         </p>
 
         <label class="calc-slider">
@@ -228,6 +228,14 @@
             <output id="sessions-out">12</output>
           </span>
           <input id="sessions" type="range" min="4" max="24" value="12" />
+        </label>
+
+        <label class="calc-slider">
+          <span class="calc-slider-top">
+            <span>Minutes before you notice it’s done</span>
+            <output id="notice-out">2 min</output>
+          </span>
+          <input id="notice" type="range" min="1" max="10" value="2" />
         </label>
 
         <div class="calc-rates" role="group" aria-label="Hourly rate">
@@ -245,7 +253,7 @@
           </p>
         </div>
 
-        <p class="calc-assume">Assumes 4 min lost per session · 250 work days</p>
+        <p class="calc-assume">250 work days · conservative 2 min notice lag</p>
       </section>
 
       <section class="cta-bottom">

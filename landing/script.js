@@ -50,11 +50,12 @@ setInterval(cycleOrb, 2800);
 
 // ── ROI calculator ────────────────────────────────────────────────
 const PRICE = 3.99;
-const DELAY_MIN = 4;
 const WORK_DAYS = 250;
 
 const sessions = document.getElementById("sessions");
+const notice = document.getElementById("notice");
 const sessionsOut = document.getElementById("sessions-out");
+const noticeOut = document.getElementById("notice-out");
 const savingsEl = document.getElementById("savings");
 const savingsDetailEl = document.getElementById("savings-detail");
 const roiEl = document.getElementById("roi");
@@ -72,9 +73,11 @@ function money(n) {
 
 function recalc() {
   const sessionsPerDay = Number(sessions.value);
+  const noticeMin = Number(notice.value);
   sessionsOut.textContent = String(sessionsPerDay);
+  noticeOut.textContent = `${noticeMin} min`;
 
-  const hoursLost = (sessionsPerDay * WORK_DAYS * DELAY_MIN) / 60;
+  const hoursLost = (sessionsPerDay * WORK_DAYS * noticeMin) / 60;
   const dollars = hoursLost * hourly;
   const roi = Math.max(1, Math.round(dollars / PRICE));
 
@@ -85,6 +88,7 @@ function recalc() {
 }
 
 sessions.addEventListener("input", recalc);
+notice.addEventListener("input", recalc);
 
 for (const pill of ratePills) {
   pill.addEventListener("click", () => {
