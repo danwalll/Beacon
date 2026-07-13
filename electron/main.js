@@ -320,39 +320,72 @@ async function runGatekeeperGuide() {
   });
 }
 
+function formatAppList(names) {
+  if (names.length === 0) return "";
+  if (names.length === 1) return names[0];
+  if (names.length === 2) return `${names[0]} and ${names[1]}`;
+  return `${names.slice(0, -1).join(", ")}, and ${names[names.length - 1]}`;
+}
+
+async function openConnectedApps(ids) {
+  for (const id of ids) {
+    const info = RESTART_APPS[id];
+    if (!info) continue;
+    try {
+      await execFileAsync("open", ["-a", info.name]);
+    } catch {
+      // ignore
+    }
+  }
+}
+
 async function runFirstLaunchSetup() {
   if (!app.isPackaged || prefs.setupComplete) return;
 
-  let suggested = "";
+  let connected = [];
   try {
-    const list = connectionsModule().listConnections(PORT);
-    const pick = list.find((c) => c.recommended);
-    if (pick) {
-      suggested = `\n\nWe noticed ${pick.name} — turn it on in the next screen.`;
-    }
-  } catch {
-    // ignore
+    connected = connectionsModule().autoConnectRecommended(PORT);
+  } catch (err) {
+    console.error("Auto-connect failed:", err);
   }
-
-  const { response } = await dialog.showMessageBox({
-    type: "question",
-    title: "Welcome to Beacon",
-    message: "Which apps should light up?",
-    detail:
-      "Right-click the orb anytime for options.\n\n" +
-      "Turn on the apps you use, then restart each once." +
-      suggested +
-      "\n\nFind Beacon later: ⌘Space → type Beacon → Enter.",
-    buttons: ["Set up apps", "Skip for now"],
-    defaultId: 0,
-    cancelId: 1,
-  });
 
   prefs.setupComplete = true;
   savePrefs();
 
+  if (connected.length === 0) {
+    await dialog.showMessageBox({
+      type: "info",
+      title: "Welcome to Beacon",
+      message: "Beacon is ready",
+      detail:
+        "We didn't find Cursor, ChatGPT, or Claude on this Mac yet.\n\n" +
+        "When you install one, connect it from the Beacon menu.\n\n" +
+        "Find Beacon anytime: ⌘Space → type Beacon → Enter.",
+      buttons: ["OK"],
+    });
+    return;
+  }
+
+  const labels = formatAppList(connected.map((c) => c.name));
+  const openLabel =
+    connected.length === 1
+      ? `Open ${RESTART_APPS[connected[0].id]?.name || connected[0].name}`
+      : "Open all";
+
+  const { response } = await dialog.showMessageBox({
+    type: "info",
+    title: "Beacon",
+    message: `We connected ${labels} — restart them`,
+    detail:
+      "Beacon hooked up the apps we found on your Mac.\n\n" +
+      "Restart each one once so the orb can follow along.",
+    buttons: [openLabel, "Later"],
+    defaultId: 0,
+    cancelId: 1,
+  });
+
   if (response === 0) {
-    openConnectionsWindow();
+    await openConnectedApps(connected.map((c) => c.id));
   }
 }
 

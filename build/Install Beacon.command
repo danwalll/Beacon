@@ -22,4 +22,4 @@ codesign --force --deep --sign - "$DEST" 2>/dev/null || true
 echo "Opening Beacon…"
 open "$DEST"
 
-osascript -e 'display notification "You’re all set — turn on your apps in Set up." with title "Beacon installed"'
+osascript -e 'display notification "You’re all set — Beacon will connect your apps on first launch." with title "Beacon installed"'

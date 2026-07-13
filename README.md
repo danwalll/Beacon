@@ -9,8 +9,8 @@ Floating orbs on your desktop — one per app — so you always know when an AI 
 1. Get the latest **Beacon DMG** from [Releases](https://github.com/danwalll/Beacon/releases) — `Beacon-*-arm64.dmg` on Apple Silicon
 2. Open the DMG → double-click **Beacon** (it copies itself to Applications and reopens)
 3. First launch only: a **First time on this Mac?** screen explains the one-time **Right-click → Open** step if macOS blocks Beacon
-4. Welcome → **Set up apps** → turn on Cursor, ChatGPT, and/or Claude
-5. When prompted, **open each app once** so hooks load
+4. First launch: Beacon **auto-connects** Cursor, ChatGPT, and/or Claude if it finds them
+5. When prompted, **restart each connected app once** so hooks load
 6. Open Beacon anytime: **⌘Space** → type **Beacon** → Enter
 
 **Right-click the orb** for sound, notifications, login, and setup.

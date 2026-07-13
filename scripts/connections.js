@@ -377,12 +377,30 @@ function focusAppsFor(source) {
   return p?.focus || ["Cursor"];
 }
 
+/** Connect every likely-installed app that is not already hooked up. */
+function autoConnectRecommended(port = 17373) {
+  syncHooks();
+  const list = listConnections(port);
+  const connected = [];
+  for (const c of list) {
+    if (!c.recommended || c.connected || c.id === "http") continue;
+    const result = connect(c.id);
+    if (result.ok) {
+      connected.push({ id: c.id, name: c.name });
+    } else {
+      console.error(`auto-connect ${c.id}:`, result.error);
+    }
+  }
+  return connected;
+}
+
 module.exports = {
   PROVIDERS,
   listConnections,
   connect,
   disconnect,
   syncHooks,
+  autoConnectRecommended,
   httpRecipe,
   focusAppsFor,
   INSTALL_DIR,
