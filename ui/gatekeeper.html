@@ -7,53 +7,59 @@
       content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'"
     />
     <title>First time on this Mac?</title>
+    <link rel="stylesheet" href="macos-native.css" />
     <link rel="stylesheet" href="gatekeeper.css" />
   </head>
-  <body>
-    <header>
-      <p class="eyebrow">Beacon</p>
+  <body class="sheet">
+    <header class="sheet-header">
       <h1>First time on this Mac?</h1>
-      <p class="lede">
+      <p class="subtitle">
         macOS may block Beacon once because it isn’t from the App Store. That’s
-        normal — this only happens the first time.
+        normal — you only need to do this once.
       </p>
     </header>
 
-    <ol class="steps">
-      <li>
-        <span class="step-num">1</span>
+    <div class="group">
+      <div class="group-row group-row--stacked">
         <div>
-          <strong>Open the download</strong>
-          <p>Double-click the <strong>Beacon</strong> file you received (the DMG).</p>
+          <p class="group-row__title">
+            <span class="step-icon">1</span>Open the download
+          </p>
+          <p class="group-row__body">
+            Double-click the <strong>Beacon</strong> file you received (the DMG).
+          </p>
         </div>
-      </li>
-      <li>
-        <span class="step-num">2</span>
+      </div>
+      <div class="group-row group-row--stacked">
         <div>
-          <strong>Install Beacon</strong>
-          <p>Double-click <strong>Beacon</strong> in the window — it copies itself to Applications.</p>
+          <p class="group-row__title">
+            <span class="step-icon">2</span>Install Beacon
+          </p>
+          <p class="group-row__body">
+            Double-click <strong>Beacon</strong> — it copies itself to Applications.
+          </p>
         </div>
-      </li>
-      <li>
-        <span class="step-num">3</span>
+      </div>
+      <div class="group-row group-row--stacked group-row--warn">
         <div>
-          <strong>If Mac says it “can’t be opened”</strong>
-          <p>
+          <p class="group-row__title">
+            <span class="step-icon">3</span>If Mac says it can’t be opened
+          </p>
+          <p class="group-row__body">
             Open <strong>Applications</strong> → <strong>right-click Beacon</strong>
             → <strong>Open</strong> → click <strong>Open</strong> again.
           </p>
         </div>
-      </li>
-    </ol>
+      </div>
+    </div>
 
-    <p class="hint">
-      After that, open Beacon anytime with <strong>⌘Space</strong> → type
-      <strong>Beacon</strong> → Enter.
+    <p class="sheet-footnote">
+      Then open Beacon anytime: <strong>⌘Space</strong> → type <strong>Beacon</strong> → Enter.
     </p>
 
-    <footer class="actions">
-      <button type="button" class="ghost" id="reveal">Show Beacon in Applications</button>
-      <button type="button" class="primary" id="continue">Got it — continue</button>
+    <footer class="sheet-footer">
+      <button type="button" class="ghost" id="reveal">Show in Applications</button>
+      <button type="button" class="primary" id="continue">Continue</button>
     </footer>
     <script src="gatekeeper-ui.js"></script>
   </body>

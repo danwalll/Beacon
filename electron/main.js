@@ -209,6 +209,34 @@ async function offerRestartAfterConnect(id) {
   }
 }
 
+function macSheetWindowOptions(extra = {}) {
+  const base = {
+    autoHideMenuBar: true,
+    titleBarStyle: "hiddenInset",
+    trafficLightPosition: { x: 14, y: 16 },
+    show: false,
+    webPreferences: {
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: true,
+    },
+  };
+
+  if (process.platform === "darwin") {
+    Object.assign(base, {
+      transparent: true,
+      backgroundColor: "#00000000",
+      vibrancy: "under-window",
+      visualEffectState: "active",
+      backgroundMaterial: "under-window",
+    });
+  } else {
+    base.backgroundColor = "#ececec";
+  }
+
+  return { ...base, ...extra };
+}
+
 function openGatekeeperGuide({ force = false } = {}) {
   if (gatekeeperWin && !gatekeeperWin.isDestroyed()) {
     gatekeeperWin.show();
@@ -216,24 +244,24 @@ function openGatekeeperGuide({ force = false } = {}) {
     return gatekeeperWin;
   }
 
-  gatekeeperWin = new BrowserWindow({
-    width: 500,
-    height: 620,
-    minWidth: 420,
-    minHeight: 520,
-    title: "First time on this Mac?",
-    resizable: true,
-    maximizable: false,
-    fullscreenable: false,
-    show: false,
-    autoHideMenuBar: true,
-    webPreferences: {
-      preload: path.join(__dirname, "guide-preload.js"),
-      contextIsolation: true,
-      nodeIntegration: false,
-      sandbox: true,
-    },
-  });
+  gatekeeperWin = new BrowserWindow(
+    macSheetWindowOptions({
+      width: 460,
+      height: 520,
+      minWidth: 400,
+      minHeight: 460,
+      title: "First time on this Mac?",
+      resizable: true,
+      maximizable: false,
+      fullscreenable: false,
+      webPreferences: {
+        preload: path.join(__dirname, "guide-preload.js"),
+        contextIsolation: true,
+        nodeIntegration: false,
+        sandbox: true,
+      },
+    })
+  );
 
   gatekeeperWin.loadFile(path.join(__dirname, "..", "ui", "gatekeeper.html"));
   gatekeeperWin.once("ready-to-show", () => {
@@ -411,21 +439,21 @@ function openConnectionsWindow() {
     return;
   }
 
-  connectionsWin = new BrowserWindow({
-    width: 520,
-    height: 640,
-    minWidth: 420,
-    minHeight: 480,
-    title: "Set up Beacon",
-    backgroundColor: "#f3f5f7",
-    show: false,
-    webPreferences: {
-      preload: path.join(__dirname, "preload.js"),
-      contextIsolation: true,
-      nodeIntegration: false,
-      sandbox: true,
-    },
-  });
+  connectionsWin = new BrowserWindow(
+    macSheetWindowOptions({
+      width: 480,
+      height: 620,
+      minWidth: 400,
+      minHeight: 480,
+      title: "Set up Beacon",
+      webPreferences: {
+        preload: path.join(__dirname, "preload.js"),
+        contextIsolation: true,
+        nodeIntegration: false,
+        sandbox: true,
+      },
+    })
+  );
 
   connectionsWin.loadFile(path.join(__dirname, "..", "ui", "connections.html"));
   connectionsWin.once("ready-to-show", () => {

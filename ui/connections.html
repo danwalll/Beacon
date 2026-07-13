@@ -7,24 +7,22 @@
       content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'"
     />
     <title>Set up Beacon</title>
+    <link rel="stylesheet" href="macos-native.css" />
     <link rel="stylesheet" href="connections.css" />
   </head>
-  <body>
-    <header>
-      <p class="eyebrow">Beacon</p>
-      <h1>Which apps should light up the orb?</h1>
-      <p>
-        Turn on the tools you use. Each one gets its own floating light so you
-        can tell them apart.
+  <body class="sheet">
+    <header class="sheet-header">
+      <h1>Which apps should light up?</h1>
+      <p class="subtitle">
+        Turn on the tools you use. Each gets its own floating orb on your desktop.
       </p>
     </header>
-    <main id="install-banner" class="install-banner" hidden></main>
+    <main id="install-banner" class="callout" hidden></main>
     <main id="list"></main>
-    <footer>
+    <footer class="sheet-page-footer">
       <p>
         Leave Beacon running. After you turn something on, restart that app once.
-        <strong>Right-click the orb</strong> for options — set up apps, sound, and
-        more.
+        Right-click the orb for sound, notifications, and more.
       </p>
     </footer>
     <script src="connections-ui.js"></script>

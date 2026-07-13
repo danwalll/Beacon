@@ -35,7 +35,7 @@ bash scripts/install-app.sh   # rebuild + install to /Applications
 npm run release               # DMG in dist/
 ```
 
-Creates `dist/Beacon-1.1.0-<arch>.dmg`. AirDrop, Drive, or attach to a GitHub Release.
+Creates `dist/Beacon-1.1.1-<arch>.dmg`. AirDrop, Drive, or attach to a GitHub Release.
 
 ```bash
 npm start              # run from source

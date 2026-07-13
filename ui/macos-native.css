@@ -1,0 +1,344 @@
+/* Shared macOS-native tokens and controls (System Settings / sheet style) */
+:root {
+  color-scheme: light dark;
+
+  --window-bg: transparent;
+  --group-bg: rgba(255, 255, 255, 0.92);
+  --group-border: rgba(0, 0, 0, 0.06);
+  --text: #000000;
+  --secondary: rgba(0, 0, 0, 0.55);
+  --tertiary: rgba(0, 0, 0, 0.35);
+  --separator: rgba(0, 0, 0, 0.08);
+
+  --accent-blue: #007aff;
+  --accent-blue-hover: #0068d6;
+  --accent-blue-active: #0055b3;
+
+  --btn-secondary-bg: #ffffff;
+  --btn-secondary-border: rgba(0, 0, 0, 0.18);
+  --btn-secondary-hover: #f2f2f7;
+
+  --callout-bg: rgba(255, 149, 0, 0.12);
+  --callout-border: rgba(255, 149, 0, 0.28);
+
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display",
+    "Helvetica Neue", system-ui, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --group-bg: rgba(50, 50, 52, 0.94);
+    --group-border: rgba(255, 255, 255, 0.08);
+    --text: #ffffff;
+    --secondary: rgba(255, 255, 255, 0.55);
+    --tertiary: rgba(255, 255, 255, 0.35);
+    --separator: rgba(255, 255, 255, 0.1);
+
+    --accent-blue: #0a84ff;
+    --accent-blue-hover: #409cff;
+    --accent-blue-active: #0066cc;
+
+    --btn-secondary-bg: #454547;
+    --btn-secondary-border: rgba(255, 255, 255, 0.14);
+    --btn-secondary-hover: #4d4d50;
+
+    --callout-bg: rgba(255, 159, 10, 0.16);
+    --callout-border: rgba(255, 159, 10, 0.32);
+  }
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  min-height: 100%;
+  background: var(--window-bg);
+  color: var(--text);
+  font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.sheet {
+  padding: 40px 20px 16px;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.sheet-header h1 {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.sheet-header .subtitle {
+  margin-top: 6px;
+  color: var(--secondary);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.sheet-footer {
+  margin-top: auto;
+  padding-top: 14px;
+  border-top: 0.5px solid var(--separator);
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.sheet-footnote {
+  margin-top: 12px;
+  color: var(--tertiary);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+/* Grouped inset table (Settings-style) */
+.group {
+  margin-top: 16px;
+  background: var(--group-bg);
+  border: 0.5px solid var(--group-border);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 0.5px 0 rgba(255, 255, 255, 0.6) inset;
+}
+
+.group-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px 12px;
+  align-items: center;
+  padding: 11px 14px;
+}
+
+.group-row + .group-row {
+  border-top: 0.5px solid var(--separator);
+}
+
+.group-row--stacked {
+  grid-template-columns: 1fr;
+}
+
+.group-row__title {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.group-row__body {
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--secondary);
+  margin-top: 2px;
+}
+
+.group-row__meta {
+  font-size: 11px;
+  color: var(--tertiary);
+  margin-top: 4px;
+}
+
+.group-row__aside {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.group-row__note {
+  grid-column: 1 / -1;
+  margin-top: 2px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(0, 122, 255, 0.08);
+  color: var(--secondary);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.group-row--warn {
+  background: var(--callout-bg);
+}
+
+.badge {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: rgba(0, 122, 255, 0.12);
+  color: var(--accent-blue);
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.status-pill {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--secondary);
+}
+
+.status-pill.is-on {
+  color: #248a3d;
+}
+
+@media (prefers-color-scheme: dark) {
+  .status-pill.is-on {
+    color: #30d158;
+  }
+
+  .group-row__note {
+    background: rgba(10, 132, 255, 0.14);
+  }
+}
+
+.callout {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: var(--callout-bg);
+  border: 0.5px solid var(--callout-border);
+}
+
+.callout h2 {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.callout p {
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--secondary);
+}
+
+.callout .actions {
+  margin-top: 10px;
+}
+
+.disclosure {
+  margin-top: 12px;
+  border-radius: 10px;
+  border: 0.5px solid var(--group-border);
+  background: var(--group-bg);
+  overflow: hidden;
+}
+
+.disclosure summary {
+  padding: 10px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: default;
+  list-style: none;
+  user-select: none;
+}
+
+.disclosure summary::-webkit-details-marker {
+  display: none;
+}
+
+.disclosure summary::before {
+  content: "▸ ";
+  color: var(--tertiary);
+}
+
+.disclosure[open] summary::before {
+  content: "▾ ";
+}
+
+.disclosure-body {
+  padding: 0 14px 12px;
+  border-top: 0.5px solid var(--separator);
+}
+
+.disclosure-body p {
+  margin-top: 10px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--secondary);
+}
+
+.disclosure-body pre {
+  margin-top: 8px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.04);
+  border: 0.5px solid var(--separator);
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 10px;
+  line-height: 1.4;
+  overflow-x: auto;
+  color: var(--secondary);
+}
+
+@media (prefers-color-scheme: dark) {
+  .disclosure-body pre {
+    background: rgba(0, 0, 0, 0.25);
+  }
+}
+
+/* macOS push buttons */
+button {
+  appearance: none;
+  border: 0.5px solid transparent;
+  border-radius: 6px;
+  min-height: 28px;
+  padding: 4px 14px;
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 18px;
+  cursor: default;
+  user-select: none;
+  white-space: nowrap;
+}
+
+button.primary {
+  background: var(--accent-blue);
+  border-color: rgba(0, 0, 0, 0.12);
+  color: #ffffff;
+  font-weight: 510;
+}
+
+button.primary:hover {
+  background: var(--accent-blue-hover);
+}
+
+button.primary:active {
+  background: var(--accent-blue-active);
+}
+
+button.ghost {
+  background: var(--btn-secondary-bg);
+  border-color: var(--btn-secondary-border);
+  color: var(--text);
+}
+
+button.ghost:hover {
+  background: var(--btn-secondary-hover);
+}
+
+button.ghost:active {
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+button:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 2px;
+}
+
+button:disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
