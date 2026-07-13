@@ -147,58 +147,33 @@
       <section class="calc" aria-labelledby="calc-title">
         <h2 id="calc-title">What waiting costs you</h2>
         <p class="calc-note">
-          Every time you don’t notice an agent finished, you lose focus time. Beacon
-          pays for itself almost immediately.
+          Every missed “agent done” costs a few minutes of focus. Drag to your day.
         </p>
 
-        <div class="calc-grid">
-          <label class="field">
-            <span>Your role</span>
-            <select id="role">
-              <option value="120">Software engineer · $120/hr</option>
-              <option value="95">Designer · $95/hr</option>
-              <option value="100" selected>Product · $100/hr</option>
-              <option value="85">Other · $85/hr</option>
-            </select>
-          </label>
-
-          <label class="field">
-            <span>Agent sessions per day</span>
-            <input id="sessions" type="range" min="4" max="30" value="12" />
+        <label class="calc-slider">
+          <span class="calc-slider-top">
+            <span>AI sessions per day</span>
             <output id="sessions-out">12</output>
-          </label>
+          </span>
+          <input id="sessions" type="range" min="4" max="24" value="12" />
+        </label>
 
-          <label class="field">
-            <span>Minutes lost per session (without Beacon)</span>
-            <input id="delay" type="range" min="1" max="10" value="4" />
-            <output id="delay-out">4 min</output>
-          </label>
-
-          <label class="field">
-            <span>Work days per year</span>
-            <input id="days" type="range" min="200" max="260" value="250" />
-            <output id="days-out">250</output>
-          </label>
+        <div class="calc-rates" role="group" aria-label="Hourly rate">
+          <button type="button" class="rate-pill" data-rate="85">$85/hr</button>
+          <button type="button" class="rate-pill is-active" data-rate="100">$100/hr</button>
+          <button type="button" class="rate-pill" data-rate="120">$120/hr</button>
         </div>
 
-        <div class="result">
-          <p class="result-label">Estimated time value recovered</p>
+        <div class="calc-result">
           <p class="result-value" id="savings">$20,000</p>
-          <p class="result-sub" id="savings-detail">per year · ~200 hours back</p>
+          <p class="result-sub" id="savings-detail">recovered per year · ~200 hours back</p>
+          <p class="calc-payoff">
+            Beacon is <strong>$3.99</strong> once —
+            <span id="roi">5,000×</span> ROI
+          </p>
         </div>
 
-        <div class="price-compare">
-          <div class="price-card highlight">
-            <p class="price-label">Beacon</p>
-            <p class="price-amount">$3.99</p>
-            <p class="price-once">once · Mac download</p>
-          </div>
-          <div class="price-card">
-            <p class="price-label">ROI</p>
-            <p class="price-amount" id="roi">5,000×</p>
-            <p class="price-once">first year alone</p>
-          </div>
-        </div>
+        <p class="calc-assume">Assumes 4 min lost per session · 250 work days</p>
       </section>
 
       <section class="cta-bottom">

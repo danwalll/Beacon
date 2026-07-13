@@ -55,19 +55,17 @@ setInterval(cycleOrb, 2800);
 
 // ── ROI calculator ────────────────────────────────────────────────
 const PRICE = 3.99;
+const DELAY_MIN = 4;
+const WORK_DAYS = 250;
 
-const role = document.getElementById("role");
 const sessions = document.getElementById("sessions");
-const delay = document.getElementById("delay");
-const days = document.getElementById("days");
-
 const sessionsOut = document.getElementById("sessions-out");
-const delayOut = document.getElementById("delay-out");
-const daysOut = document.getElementById("days-out");
-
 const savingsEl = document.getElementById("savings");
 const savingsDetailEl = document.getElementById("savings-detail");
 const roiEl = document.getElementById("roi");
+const ratePills = document.querySelectorAll(".rate-pill");
+
+let hourly = 100;
 
 function money(n) {
   return n.toLocaleString("en-US", {
@@ -78,27 +76,28 @@ function money(n) {
 }
 
 function recalc() {
-  const hourly = Number(role.value);
   const sessionsPerDay = Number(sessions.value);
-  const delayMin = Number(delay.value);
-  const workDays = Number(days.value);
-
   sessionsOut.textContent = String(sessionsPerDay);
-  delayOut.textContent = `${delayMin} min`;
-  daysOut.textContent = String(workDays);
 
-  const hoursLost = (sessionsPerDay * workDays * delayMin) / 60;
+  const hoursLost = (sessionsPerDay * WORK_DAYS * DELAY_MIN) / 60;
   const dollars = hoursLost * hourly;
   const roi = Math.max(1, Math.round(dollars / PRICE));
 
   savingsEl.textContent = money(dollars);
-  savingsDetailEl.textContent = `per year · ~${Math.round(hoursLost)} hours back`;
+  savingsDetailEl.textContent = `recovered per year · ~${Math.round(hoursLost)} hours back`;
   roiEl.textContent =
     roi >= 1000 ? `${Math.round(roi / 100) / 10}k×` : `${roi}×`;
 }
 
-for (const el of [role, sessions, delay, days]) {
-  el.addEventListener("input", recalc);
+sessions.addEventListener("input", recalc);
+
+for (const pill of ratePills) {
+  pill.addEventListener("click", () => {
+    for (const p of ratePills) p.classList.remove("is-active");
+    pill.classList.add("is-active");
+    hourly = Number(pill.dataset.rate);
+    recalc();
+  });
 }
 
 recalc();

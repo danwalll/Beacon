@@ -531,11 +531,12 @@ body {
 
 .calc {
   margin-top: var(--section-gap);
-  padding: 28px;
+  padding: 32px 28px;
   background: var(--card);
   border: 0.5px solid var(--line);
   border-radius: 16px;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  text-align: center;
 }
 
 .calc h2 {
@@ -552,106 +553,94 @@ body {
   color: var(--muted);
 }
 
-.calc-grid {
-  margin-top: 24px;
-  display: grid;
-  gap: 18px;
+.calc-slider {
+  display: block;
+  margin-top: 28px;
+  text-align: left;
 }
 
-.field {
-  display: grid;
-  gap: 8px;
-}
-
-.field span {
+.calc-slider-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
   font-size: 13px;
   font-weight: 600;
 }
 
-.field select {
-  appearance: none;
-  border: 0.5px solid var(--line);
-  border-radius: 8px;
-  padding: 10px 12px;
-  font: inherit;
-  font-size: 14px;
-  background: var(--bg);
+.calc-slider-top output {
+  font-size: 15px;
+  font-weight: 700;
   color: var(--text);
 }
 
-.field input[type="range"] {
+.calc-slider input[type="range"] {
   width: 100%;
+  margin-top: 10px;
   accent-color: var(--dark);
 }
 
-.field output {
-  font-size: 13px;
-  color: var(--muted);
-  justify-self: end;
+.calc-rates {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 20px;
 }
 
-.result {
-  margin-top: 28px;
-  padding-top: 24px;
+.rate-pill {
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  color: var(--muted);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.rate-pill:hover {
+  color: var(--text);
+}
+
+.rate-pill.is-active {
+  background: var(--dark);
+  border-color: var(--dark);
+  color: var(--bg);
+}
+
+.calc-result {
+  margin-top: 32px;
+  padding-top: 28px;
   border-top: 0.5px solid var(--line);
-  text-align: center;
-}
-
-.result-label {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--muted);
 }
 
 .result-value {
-  margin-top: 4px;
-  font-size: clamp(2.5rem, 8vw, 3.5rem);
+  font-size: clamp(2.5rem, 8vw, 3.25rem);
   font-weight: 700;
   letter-spacing: -0.04em;
   color: var(--green);
+  line-height: 1;
 }
 
 .result-sub {
-  margin-top: 4px;
+  margin-top: 8px;
   font-size: 14px;
   color: var(--muted);
 }
 
-.price-compare {
-  margin-top: 24px;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
+.calc-payoff {
+  margin-top: 16px;
+  font-size: 15px;
+  color: var(--text);
 }
 
-.price-card {
-  padding: 16px;
-  border-radius: 12px;
-  border: 0.5px solid var(--line);
-  background: var(--bg);
-  text-align: center;
-}
-
-.price-card.highlight {
-  border-color: color-mix(in srgb, var(--dark) 25%, var(--line));
-  background: color-mix(in srgb, var(--dark) 4%, var(--card));
-}
-
-.price-label {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--muted);
-}
-
-.price-amount {
-  margin-top: 4px;
-  font-size: 28px;
+.calc-payoff strong {
   font-weight: 700;
-  letter-spacing: -0.03em;
 }
 
-.price-once {
-  margin-top: 2px;
+.calc-assume {
+  margin-top: 20px;
   font-size: 11px;
   color: var(--muted);
 }
@@ -727,10 +716,6 @@ footer p {
   }
 
   .state-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .price-compare {
     grid-template-columns: 1fr;
   }
 
