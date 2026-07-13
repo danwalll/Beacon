@@ -1,37 +1,41 @@
 # Beacon
 
-Desktop orb that turns green when your Cursor agent finishes. Click it to jump back.
+Amber = working · Rose = needs you · Green = done
+
+Floating orbs on your desktop — one per app — so you always know when an AI agent needs you.
 
 ## Install (for anyone)
 
-1. Get the latest **Beacon DMG** (or zip) from whoever built it — usually `dist/Beacon-*-arm64.dmg`
-2. Open the DMG → drag **Beacon** into **Applications**
-3. First launch: **Right-click Beacon → Open** (required once; the app isn’t Apple-notarized yet)
-4. When prompted, click **Set up now**
-5. **Restart Cursor** once
-6. Leave Beacon running (menu bar icon)
+1. Get the latest **Beacon DMG** from [Releases](https://github.com/danwalll/Beacon/releases) — `Beacon-*-arm64.dmg` on Apple Silicon
+2. Open the DMG → double-click **Beacon** (it copies itself to Applications and reopens)
+3. First launch only: a **First time on this Mac?** screen explains the one-time **Right-click → Open** step if macOS blocks Beacon
+4. Welcome → **Set up apps** → turn on Cursor, ChatGPT, and/or Claude
+5. When prompted, **open each app once** so hooks load
+6. Open Beacon anytime: **⌘Space** → type **Beacon** → Enter
 
-That’s it. Amber = agent working. Green = done → click to return.
+**Right-click the orb** for sound, notifications, login, and setup.
 
 ### Optional
-- Menu bar → **Launch at Login**
-- Menu bar → **Install Cursor Hooks** (if setup was skipped)
-- **System Settings → Privacy & Security → Accessibility** → enable **Beacon** for better window focusing
+
+- Menu bar **Beacon** → **Open at login**
+- **System Settings → Privacy & Security → Accessibility** → enable **Beacon** for better click-to-focus
 
 ### Apple Silicon vs Intel
-- M1/M2/M3/M4 → use the `arm64` DMG  
-- Intel Mac → ask for the `x64` build (`./scripts/release.sh` on an Intel machine, or `npx electron-builder --mac dmg --x64`)
+
+- M1/M2/M3/M4 → `arm64` DMG
+- Intel Mac → build `x64` on an Intel machine (`npx electron-builder --mac dmg --x64`)
 
 ---
 
-## Build a shareable DMG (maintainers)
+## Build & share (maintainers)
 
 ```bash
-cd /Users/danwall/Beacon
-./scripts/release.sh
+cd ~/Beacon
+bash scripts/install-app.sh   # rebuild + install to /Applications
+npm run release               # DMG in dist/
 ```
 
-Creates `dist/Beacon-1.0.0-<arch>.dmg` and `.zip`. AirDrop / Drive / GitHub Release those files.
+Creates `dist/Beacon-1.1.0-<arch>.dmg`. AirDrop, Drive, or attach to a GitHub Release.
 
 ```bash
 npm start              # run from source
@@ -41,12 +45,13 @@ npm run demo:done      # smoke-test the green state
 
 ## How it works
 
-Cursor hooks notify a local Beacon server when a prompt starts and when the agent stops. The floating widget reflects that state and focuses Cursor on click.
+Hooks in `~/.agent-beacon/hooks` notify a local server (`127.0.0.1:17373`) when an agent starts or finishes. Each connected app gets its own orb.
 
-| Surface | Support |
+| App | How it connects |
 |---|---|
-| Cursor Agent / Editor | Yes (hooks) |
-| Exact chat tab | Best-effort (needs Accessibility) |
-| Claude Code | Optional (`npm run install:hooks -- --claude`) |
+| **Cursor** | One-click hooks |
+| **ChatGPT** | Codex hooks (`~/.codex/hooks.json`) |
+| **Claude** | Claude Code hooks |
+| **Custom** | HTTP POST to `/status` |
 
-Hooks live in `~/.agent-beacon/hooks` and don’t depend on this repo path.
+Hooks don’t depend on this repo path after install.

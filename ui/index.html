@@ -11,11 +11,15 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <button id="beacon" class="beacon idle" type="button" aria-label="Agent Beacon">
-      <span class="ring"></span>
-      <span class="core"></span>
-      <span class="label" id="label"></span>
-    </button>
+    <div class="shell" id="shell">
+      <button id="beacon" class="beacon idle" type="button" aria-label="Agent Beacon">
+        <span class="ring"></span>
+        <span class="core"></span>
+      </button>
+      <div class="ticker" id="ticker" hidden>
+        <div class="ticker-track" id="ticker-track"></div>
+      </div>
+    </div>
     <script src="renderer.js"></script>
   </body>
 </html>

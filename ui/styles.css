@@ -27,15 +27,57 @@ body {
   user-select: none;
 }
 
+.shell {
+  position: relative;
+  width: 100px;
+  height: 108px;
+  padding: 16px 14px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
+  cursor: grab;
+  -webkit-app-region: drag;
+}
+
+.shell.is-clickable {
+  -webkit-app-region: no-drag;
+  cursor: default;
+}
+
+.shell:active:not(.is-clickable) {
+  cursor: grabbing;
+}
+
 .beacon {
   position: relative;
   width: 64px;
   height: 64px;
   border: 0;
   background: transparent;
-  cursor: pointer;
-  -webkit-app-region: no-drag;
+  cursor: grab;
+  -webkit-app-region: drag;
   outline: none;
+}
+
+.beacon:active {
+  cursor: grabbing;
+}
+
+/* Done / needs-you: whole orb is clickable (drag region blocks button clicks) */
+.beacon.is-clickable {
+  -webkit-app-region: no-drag;
+  cursor: pointer;
+}
+
+.beacon.is-clickable:active {
+  cursor: pointer;
+}
+
+.beacon.is-clickable .ring,
+.beacon.is-clickable .core {
+  -webkit-app-region: no-drag;
+  cursor: pointer;
 }
 
 .ring {
@@ -46,6 +88,7 @@ body {
   opacity: 0.55;
   transition: border-color 220ms ease, opacity 220ms ease, transform 220ms ease;
   -webkit-app-region: drag;
+  cursor: inherit;
 }
 
 .core {
@@ -55,35 +98,81 @@ body {
   background: radial-gradient(circle at 35% 30%, #9aa3ad, var(--idle));
   box-shadow:
     0 0 0 1px rgba(255, 255, 255, 0.12) inset,
-    0 8px 18px rgba(0, 0, 0, 0.35),
-    0 0 18px var(--idle-glow);
+    0 4px 10px rgba(0, 0, 0, 0.22),
+    0 0 16px var(--idle-glow);
   transition:
     background 220ms ease,
     box-shadow 220ms ease,
     transform 160ms ease;
-  -webkit-app-region: no-drag;
+  -webkit-app-region: drag;
+  cursor: inherit;
 }
 
-.label {
-  position: absolute;
-  left: 50%;
-  bottom: -2px;
-  transform: translateX(-50%);
-  font-size: 8px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.85);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.65);
-  opacity: 0;
+.ticker {
+  width: 64px;
+  height: 14px;
+  margin-top: -2px;
+  overflow: hidden;
   pointer-events: none;
-  transition: opacity 180ms ease;
 }
 
-.beacon:hover .label,
-.beacon.done .label,
-.beacon.working .label,
-.beacon.action .label {
-  opacity: 1;
+.ticker[hidden] {
+  display: none;
+}
+
+.ticker-track {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.ticker.is-scrolling {
+  mask-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    #000 18%,
+    #000 82%,
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    #000 18%,
+    #000 82%,
+    transparent 100%
+  );
+}
+
+.ticker.is-scrolling .ticker-track {
+  justify-content: flex-start;
+  width: max-content;
+  animation: ticker-scroll 8s linear infinite;
+}
+
+.ticker-text {
+  flex: 0 0 auto;
+  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+  white-space: nowrap;
+  color: #fff;
+  -webkit-font-smoothing: antialiased;
+  /* macOS desktop icon label: white type + soft dark halo */
+  text-shadow:
+    0 0 1px rgba(0, 0, 0, 0.9),
+    0 1px 2px rgba(0, 0, 0, 0.85),
+    0 0 6px rgba(0, 0, 0, 0.45);
+}
+
+@keyframes ticker-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
 }
 
 .beacon:active .core {
@@ -94,16 +183,16 @@ body {
   background: radial-gradient(circle at 35% 30%, #8b949e, var(--idle));
   box-shadow:
     0 0 0 1px rgba(255, 255, 255, 0.12) inset,
-    0 8px 18px rgba(0, 0, 0, 0.35),
-    0 0 16px var(--idle-glow);
+    0 4px 10px rgba(0, 0, 0, 0.22),
+    0 0 14px var(--idle-glow);
 }
 
 .beacon.working .core {
   background: radial-gradient(circle at 35% 30%, #f6c56a, var(--working));
   box-shadow:
     0 0 0 1px rgba(255, 255, 255, 0.18) inset,
-    0 8px 18px rgba(0, 0, 0, 0.35),
-    0 0 22px var(--working-glow);
+    0 4px 10px rgba(0, 0, 0, 0.2),
+    0 0 20px var(--working-glow);
   animation: pulse 1.4s ease-in-out infinite;
 }
 
@@ -112,13 +201,12 @@ body {
   animation: ring-pulse 1.4s ease-in-out infinite;
 }
 
-/* Needs your answer / decision — unmistakably different from working & done */
 .beacon.action .core {
   background: radial-gradient(circle at 35% 30%, #fb7185, var(--action));
   box-shadow:
     0 0 0 1px rgba(255, 255, 255, 0.22) inset,
-    0 8px 18px rgba(0, 0, 0, 0.35),
-    0 0 30px var(--action-glow);
+    0 4px 10px rgba(0, 0, 0, 0.2),
+    0 0 24px var(--action-glow);
   animation: action-blink 0.9s ease-in-out infinite;
 }
 
@@ -131,8 +219,8 @@ body {
   background: radial-gradient(circle at 35% 30%, #6ee7b0, var(--done));
   box-shadow:
     0 0 0 1px rgba(255, 255, 255, 0.22) inset,
-    0 8px 18px rgba(0, 0, 0, 0.35),
-    0 0 28px var(--done-glow);
+    0 4px 10px rgba(0, 0, 0, 0.18),
+    0 0 22px var(--done-glow);
   animation: done-pop 420ms cubic-bezier(0.2, 0.9, 0.2, 1.2) both;
 }
 
@@ -158,7 +246,7 @@ body {
     opacity: 0.45;
   }
   50% {
-    transform: scale(1.08);
+    transform: scale(1.06);
     opacity: 0.9;
   }
 }
@@ -170,11 +258,11 @@ body {
     filter: brightness(1);
   }
   40% {
-    transform: scale(1.12);
+    transform: scale(1.08);
     filter: brightness(1.25);
   }
   55% {
-    transform: scale(0.96);
+    transform: scale(0.97);
     filter: brightness(0.9);
   }
 }
@@ -185,17 +273,17 @@ body {
     opacity: 1;
   }
   100% {
-    transform: scale(1.45);
+    transform: scale(1.28);
     opacity: 0;
   }
 }
 
 @keyframes done-pop {
   0% {
-    transform: scale(0.86);
+    transform: scale(0.9);
   }
   60% {
-    transform: scale(1.08);
+    transform: scale(1.05);
   }
   100% {
     transform: scale(1);
@@ -205,10 +293,10 @@ body {
 @keyframes done-ring {
   0% {
     transform: scale(1);
-    opacity: 0.9;
+    opacity: 0.85;
   }
   100% {
-    transform: scale(1.35);
+    transform: scale(1.22);
     opacity: 0;
   }
 }

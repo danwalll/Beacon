@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'"
+    />
+    <title>First time on this Mac?</title>
+    <link rel="stylesheet" href="gatekeeper.css" />
+  </head>
+  <body>
+    <header>
+      <p class="eyebrow">Beacon</p>
+      <h1>First time on this Mac?</h1>
+      <p class="lede">
+        macOS may block Beacon once because it isn’t from the App Store. That’s
+        normal — this only happens the first time.
+      </p>
+    </header>
+
+    <ol class="steps">
+      <li>
+        <span class="step-num">1</span>
+        <div>
+          <strong>Open the download</strong>
+          <p>Double-click the <strong>Beacon</strong> file you received (the DMG).</p>
+        </div>
+      </li>
+      <li>
+        <span class="step-num">2</span>
+        <div>
+          <strong>Install Beacon</strong>
+          <p>Double-click <strong>Beacon</strong> in the window — it copies itself to Applications.</p>
+        </div>
+      </li>
+      <li>
+        <span class="step-num">3</span>
+        <div>
+          <strong>If Mac says it “can’t be opened”</strong>
+          <p>
+            Open <strong>Applications</strong> → <strong>right-click Beacon</strong>
+            → <strong>Open</strong> → click <strong>Open</strong> again.
+          </p>
+        </div>
+      </li>
+    </ol>
+
+    <p class="hint">
+      After that, open Beacon anytime with <strong>⌘Space</strong> → type
+      <strong>Beacon</strong> → Enter.
+    </p>
+
+    <footer class="actions">
+      <button type="button" class="ghost" id="reveal">Show Beacon in Applications</button>
+      <button type="button" class="primary" id="continue">Got it — continue</button>
+    </footer>
+    <script src="gatekeeper-ui.js"></script>
+  </body>
+</html>

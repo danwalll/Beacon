@@ -1,6 +1,6 @@
 {
   "name": "beacon",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Always-on-top desktop beacon that lights up when Cursor agents finish",
   "main": "electron/main.js",
   "private": true,
@@ -17,7 +17,8 @@
     "pack": "electron-builder --dir",
     "dist": "electron-builder --mac",
     "dist:zip": "electron-builder --mac zip",
-    "release": "bash scripts/release.sh"
+    "release": "bash scripts/release.sh",
+    "install:app": "bash scripts/install-app.sh"
   },
   "dependencies": {},
   "devDependencies": {
@@ -31,6 +32,7 @@
       "electron/**/*",
       "ui/**/*",
       "scripts/install-hooks.js",
+      "scripts/connections.js",
       "package.json"
     ],
     "extraResources": [
@@ -44,6 +46,10 @@
       {
         "from": "scripts/install-hooks.js",
         "to": "install-hooks.js"
+      },
+      {
+        "from": "scripts/connections.js",
+        "to": "connections.js"
       }
     ],
     "directories": {
@@ -51,6 +57,7 @@
     },
     "mac": {
       "category": "public.app-category.productivity",
+      "icon": "build/icon.icns",
       "target": [
         "dmg",
         "zip"
@@ -60,7 +67,30 @@
       "identity": null
     },
     "dmg": {
-      "title": "Beacon"
+      "title": "Install Beacon",
+      "window": {
+        "width": 540,
+        "height": 380
+      },
+      "contents": [
+        {
+          "x": 140,
+          "y": 185,
+          "type": "file"
+        },
+        {
+          "x": 400,
+          "y": 185,
+          "type": "link",
+          "path": "/Applications"
+        },
+        {
+          "x": 140,
+          "y": 300,
+          "type": "file",
+          "path": "build/first-time-on-mac.txt"
+        }
+      ]
     }
   }
 }

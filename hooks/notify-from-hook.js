@@ -13,10 +13,32 @@ const { execFileSync } = require("child_process");
 const os = require("os");
 
 const stateArg = process.argv[2] || "done";
-const source = (process.argv[3] || "cursor").toLowerCase();
 const port = Number(process.env.AGENT_BEACON_PORT || 17373);
 const BEACON_DIR = path.join(os.homedir(), ".agent-beacon");
-const LAST_RESPONSE = path.join(BEACON_DIR, "last-response.txt");
+const LAST_RESPONSE_LEGACY = path.join(BEACON_DIR, "last-response.txt");
+
+function lastResponsePath(source) {
+  return path.join(BEACON_DIR, `last-response-${source}.txt`);
+}
+
+/** Host app from hook payload — not the AI model inside it. */
+function resolveSource(declared, payload) {
+  const d = String(declared || "cursor").toLowerCase();
+
+  if (
+    payload.cursor_version ||
+    payload.composer_mode ||
+    payload.hook_event_name === "beforeSubmitPrompt" ||
+    payload.hook_event_name === "afterAgentResponse" ||
+    payload.hook_event_name === "sessionStart" ||
+    (typeof payload.transcript_path === "string" &&
+      payload.transcript_path.includes("/.cursor/"))
+  ) {
+    return "cursor";
+  }
+
+  return d;
+}
 
 function readStdin() {
   return new Promise((resolve) => {
@@ -133,7 +155,7 @@ function looksLikeNeedsAction(text) {
   return patterns.some((re) => re.test(tail));
 }
 
-function readLastAssistantText(payload) {
+function readLastAssistantText(payload, source) {
   const direct =
     payload.last_assistant_message ||
     payload.text ||
@@ -142,9 +164,18 @@ function readLastAssistantText(payload) {
     null;
   if (direct && String(direct).trim()) return String(direct);
 
+  const cacheFile = lastResponsePath(source);
   try {
-    if (fs.existsSync(LAST_RESPONSE)) {
-      const cached = fs.readFileSync(LAST_RESPONSE, "utf8");
+    if (fs.existsSync(cacheFile)) {
+      const cached = fs.readFileSync(cacheFile, "utf8");
+      if (cached.trim()) return cached;
+    }
+    // Legacy shared cache — ignore for non-cursor sources (cross-talk).
+    if (
+      source === "cursor" &&
+      fs.existsSync(LAST_RESPONSE_LEGACY)
+    ) {
+      const cached = fs.readFileSync(LAST_RESPONSE_LEGACY, "utf8");
       if (cached.trim()) return cached;
     }
   } catch {
@@ -202,10 +233,10 @@ function readLastAssistantText(payload) {
   }
 }
 
-function cacheResponse(text) {
+function cacheResponse(text, source) {
   try {
     fs.mkdirSync(BEACON_DIR, { recursive: true });
-    fs.writeFileSync(LAST_RESPONSE, text || "", "utf8");
+    fs.writeFileSync(lastResponsePath(source), text || "", "utf8");
   } catch {
     // ignore
   }
@@ -213,12 +244,14 @@ function cacheResponse(text) {
 
 (async () => {
   const payload = await readStdin();
+  const declared = (process.argv[3] || "cursor").toLowerCase();
+  const source = resolveSource(declared, payload);
 
   try {
     fs.mkdirSync(BEACON_DIR, { recursive: true });
     fs.writeFileSync(
       path.join(BEACON_DIR, "last-hook.json"),
-      `${JSON.stringify({ state: stateArg, source, payload, at: new Date().toISOString() }, null, 2)}\n`
+      `${JSON.stringify({ state: stateArg, source, declared, payload, at: new Date().toISOString() }, null, 2)}\n`
     );
   } catch {
     // ignore
@@ -231,7 +264,7 @@ function cacheResponse(text) {
       payload.last_assistant_message ||
       payload.message ||
       "";
-    cacheResponse(String(text));
+    cacheResponse(String(text), source);
     // Don't change beacon color on every partial response — wait for stop.
     if (source === "cursor") process.stdout.write("{}\n");
     process.exit(0);
@@ -264,7 +297,7 @@ function cacheResponse(text) {
 
   // Stop/done → promote to "action" when the agent is clearly asking something
   if (state === "done") {
-    const lastText = readLastAssistantText(payload);
+    const lastText = readLastAssistantText(payload, source);
     if (looksLikeNeedsAction(lastText)) {
       state = "action";
     }
@@ -281,7 +314,14 @@ function cacheResponse(text) {
   await post({
     state,
     source,
-    app: source === "claude" ? "Claude" : "Cursor",
+    app:
+      source === "claude"
+        ? "Claude"
+        : source === "codex"
+          ? "Codex"
+          : source === "http"
+            ? "Custom"
+            : "Cursor",
     label: labelParts.join(" · ") || composerMode || workspaceLabel,
     conversationId,
     workspaceRoot,

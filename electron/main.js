@@ -20,7 +20,8 @@ const execFileAsync = promisify(execFile);
 
 const PORT = Number(process.env.AGENT_BEACON_PORT || 17373);
 const HOST = "127.0.0.1";
-const SIZE = 72;
+const ORB_WIDTH = 100;
+const ORB_HEIGHT = 108;
 
 /** @type {{ state: 'idle' | 'working' | 'action' | 'done', source: string | null, app: string | null, label: string | null, conversationId: string | null, workspaceRoot: string | null, surface: 'agents' | 'editor' | 'unknown' | null, composerMode: string | null, updatedAt: string }} */
 let status = {
@@ -35,35 +36,77 @@ let status = {
   updatedAt: new Date().toISOString(),
 };
 
-/** Recent sessions keyed by conversationId — lets focus follow whichever chat last spoke. */
-/** @type {Map<string, typeof status>} */
+/** Recent agent sessions — one orb tracks many. Keyed by source:conversationId. */
+/** @type {Map<string, object>} */
 const sessions = new Map();
 
-/** @type {{ x: number | null, y: number | null, launchAtLogin: boolean, sound: boolean, notify: boolean, focusPreference: 'auto' | 'agents' | 'editor', setupComplete: boolean }} */
+/** @type {{ x: number | null, y: number | null, positions: Record<string, {x:number,y:number}>, launchAtLogin: boolean, sound: boolean, notify: boolean, focusPreference: 'auto' | 'agents' | 'editor', setupComplete: boolean, gatekeeperGuideSeen: boolean }} */
 let prefs = {
   x: null,
   y: null,
-  launchAtLogin: false,
+  positions: {},
+  launchAtLogin: true,
   sound: true,
   notify: true,
   focusPreference: "auto",
   setupComplete: false,
+  gatekeeperGuideSeen: false,
+};
+
+const RESTART_APPS = {
+  cursor: { name: "Cursor", label: "Cursor" },
+  codex: { name: "ChatGPT", label: "ChatGPT" },
+  claude: { name: "Claude", label: "Claude Code" },
 };
 
 /** @type {Set<import('http').ServerResponse>} */
 const sseClients = new Set();
 
-/** @type {BrowserWindow | null} */
-let win = null;
+/** One floating orb per workflow source (cursor, codex, …). */
+/** @type {Map<string, BrowserWindow>} */
+const orbs = new Map();
+
+/** Best non-idle status per source. */
+/** @type {Map<string, object>} */
+const bySource = new Map();
+
 /** @type {Tray | null} */
 let tray = null;
 /** @type {import('http').Server | null} */
 let server = null;
 
+const SOURCE_ORDER = ["cursor", "codex", "claude", "http", "home"];
+const SOURCE_SHORT = {
+  cursor: "cur",
+  codex: "gpt",
+  claude: "cld",
+  http: "http",
+  home: "",
+};
+
 const APP_BUNDLES = {
   cursor: ["Cursor", "Cursor Nightly"],
-  claude: ["Claude", "Claude Code"],
+  claude: ["Claude", "Claude Code", "Terminal", "iTerm2", "Warp", "Ghostty"],
+  codex: ["ChatGPT", "Codex", "Terminal", "iTerm2", "Warp"],
+  http: [],
 };
+
+/** @type {BrowserWindow | null} */
+let connectionsWin = null;
+/** @type {BrowserWindow | null} */
+let gatekeeperWin = null;
+
+function connectionsModule() {
+  const candidate = app.isPackaged
+    ? path.join(process.resourcesPath, "connections.js")
+    : path.join(__dirname, "..", "scripts", "connections.js");
+  try {
+    delete require.cache[require.resolve(candidate)];
+  } catch {
+    delete require.cache[candidate];
+  }
+  return require(candidate);
+}
 
 function prefsPath() {
   return path.join(app.getPath("userData"), "prefs.json");
@@ -72,16 +115,20 @@ function prefsPath() {
 function loadPrefs() {
   try {
     const raw = JSON.parse(fs.readFileSync(prefsPath(), "utf8"));
+    const positions =
+      raw.positions && typeof raw.positions === "object" ? raw.positions : {};
     prefs = {
       x: Number.isFinite(raw.x) ? raw.x : null,
       y: Number.isFinite(raw.y) ? raw.y : null,
-      launchAtLogin: Boolean(raw.launchAtLogin),
+      positions,
+      launchAtLogin: raw.launchAtLogin !== false,
       sound: raw.sound !== false,
       notify: raw.notify !== false,
       focusPreference: ["auto", "agents", "editor"].includes(raw.focusPreference)
         ? raw.focusPreference
         : "auto",
       setupComplete: Boolean(raw.setupComplete),
+      gatekeeperGuideSeen: Boolean(raw.gatekeeperGuideSeen),
     };
   } catch {
     // first run
@@ -137,20 +184,138 @@ function installHooksFromApp({ silent = false } = {}) {
   }
 }
 
+async function offerRestartAfterConnect(id) {
+  const info = RESTART_APPS[id];
+  if (!info) return;
+
+  const { response } = await dialog.showMessageBox({
+    type: "info",
+    title: "Almost done",
+    message: `Restart ${info.label}?`,
+    detail:
+      `Beacon is connected to ${info.label}.\n\n` +
+      `Open ${info.name} once so the orb can follow along.`,
+    buttons: [`Open ${info.name}`, "Later"],
+    defaultId: 0,
+    cancelId: 1,
+  });
+
+  if (response === 0) {
+    try {
+      await execFileAsync("open", ["-a", info.name]);
+    } catch {
+      // ignore
+    }
+  }
+}
+
+function openGatekeeperGuide({ force = false } = {}) {
+  if (gatekeeperWin && !gatekeeperWin.isDestroyed()) {
+    gatekeeperWin.show();
+    gatekeeperWin.focus();
+    return gatekeeperWin;
+  }
+
+  gatekeeperWin = new BrowserWindow({
+    width: 500,
+    height: 620,
+    minWidth: 420,
+    minHeight: 520,
+    title: "First time on this Mac?",
+    resizable: true,
+    maximizable: false,
+    fullscreenable: false,
+    show: false,
+    autoHideMenuBar: true,
+    webPreferences: {
+      preload: path.join(__dirname, "guide-preload.js"),
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: true,
+    },
+  });
+
+  gatekeeperWin.loadFile(path.join(__dirname, "..", "ui", "gatekeeper.html"));
+  gatekeeperWin.once("ready-to-show", () => {
+    if (gatekeeperWin && !gatekeeperWin.isDestroyed()) {
+      gatekeeperWin.show();
+    }
+  });
+  gatekeeperWin.on("closed", () => {
+    gatekeeperWin = null;
+  });
+
+  if (force) {
+    gatekeeperWin.webContents.once("did-finish-load", () => {
+      if (gatekeeperWin && !gatekeeperWin.isDestroyed()) {
+        gatekeeperWin.show();
+        gatekeeperWin.focus();
+      }
+    });
+  }
+
+  return gatekeeperWin;
+}
+
+async function revealBeaconInApplications() {
+  const appPath = "/Applications/Beacon.app";
+  try {
+    if (fs.existsSync(appPath)) {
+      await execFileAsync("open", ["-R", appPath]);
+    } else {
+      await execFileAsync("open", ["/Applications"]);
+    }
+    return { ok: true };
+  } catch (err) {
+    return {
+      ok: false,
+      error: String(err && err.message ? err.message : err),
+    };
+  }
+}
+
+function dismissGatekeeperGuide() {
+  prefs.gatekeeperGuideSeen = true;
+  savePrefs();
+  if (gatekeeperWin && !gatekeeperWin.isDestroyed()) {
+    gatekeeperWin.close();
+  }
+  return { ok: true };
+}
+
+async function runGatekeeperGuide() {
+  if (!app.isPackaged || prefs.gatekeeperGuideSeen) return;
+
+  await new Promise((resolve) => {
+    const win = openGatekeeperGuide();
+    win.once("closed", resolve);
+  });
+}
+
 async function runFirstLaunchSetup() {
   if (!app.isPackaged || prefs.setupComplete) return;
+
+  let suggested = "";
+  try {
+    const list = connectionsModule().listConnections(PORT);
+    const pick = list.find((c) => c.recommended);
+    if (pick) {
+      suggested = `\n\nWe noticed ${pick.name} — turn it on in the next screen.`;
+    }
+  } catch {
+    // ignore
+  }
 
   const { response } = await dialog.showMessageBox({
     type: "question",
     title: "Welcome to Beacon",
-    message: "Set up Beacon in one step?",
+    message: "Which apps should light up?",
     detail:
-      "Beacon will:\n" +
-      "• Connect to Cursor (install hooks)\n" +
-      "• Start automatically at login\n" +
-      "• Sit on top of your desktop and turn green when an agent finishes\n\n" +
-      "After setup, restart Cursor once. If macOS asks for Accessibility later, allow Beacon so click-to-focus works.",
-    buttons: ["Set up now", "Skip for now"],
+      "Right-click the orb anytime for options.\n\n" +
+      "Turn on the apps you use, then restart each once." +
+      suggested +
+      "\n\nFind Beacon later: ⌘Space → type Beacon → Enter.",
+    buttons: ["Set up apps", "Skip for now"],
     defaultId: 0,
     cancelId: 1,
   });
@@ -158,20 +323,118 @@ async function runFirstLaunchSetup() {
   prefs.setupComplete = true;
   savePrefs();
 
-  if (response !== 0) return;
+  if (response === 0) {
+    openConnectionsWindow();
+  }
+}
 
-  const hooks = installHooksFromApp({ silent: true });
-  prefs.launchAtLogin = true;
-  savePrefs();
-  applyLoginItem();
+function bundlePath() {
+  if (!app.isPackaged) return null;
+  return path.resolve(process.execPath, "..", "..", "..");
+}
 
-  await dialog.showMessageBox({
-    type: hooks.ok ? "info" : "warning",
-    title: "Beacon",
-    message: hooks.ok ? "You're set" : "Almost set",
-    detail: hooks.ok
-      ? "1. Restart Cursor (or reload hooks)\n2. Keep Beacon running in the menu bar\n3. When an agent finishes, the orb turns green — click it to jump back\n\nMenu bar icon → Install Cursor Hooks if you ever need to reconnect."
-      : `Hooks could not be installed automatically:\n${hooks.error || "unknown error"}\n\nUse the menu bar icon → Install Cursor Hooks.`,
+function isInstalledInApplications() {
+  const bundle = bundlePath();
+  if (!bundle) return true;
+  return bundle === "/Applications/Beacon.app";
+}
+
+async function moveToApplications() {
+  const src = bundlePath();
+  if (!src || isInstalledInApplications()) {
+    return { ok: true, already: true };
+  }
+
+  const dest = "/Applications/Beacon.app";
+  try {
+    if (fs.existsSync(dest)) {
+      fs.rmSync(dest, { recursive: true, force: true });
+    }
+    await execFileAsync("ditto", [src, dest]);
+    await execFileAsync("open", [dest]);
+    return { ok: true, relaunch: true };
+  } catch (err) {
+    return {
+      ok: false,
+      error: String(err && err.message ? err.message : err),
+    };
+  }
+}
+
+/** First open from DMG/Downloads — auto-copy to Applications, then relaunch. */
+async function ensureInstalledInApplications() {
+  if (!app.isPackaged || isInstalledInApplications()) return true;
+
+  const result = await moveToApplications();
+  if (result.ok && result.relaunch) {
+    app.quit();
+    return false;
+  }
+
+  const { response } = await dialog.showMessageBox({
+    type: "info",
+    title: "Install Beacon",
+    message: "Put Beacon in Applications",
+    detail:
+      "Beacon couldn’t install automatically.\n\n" +
+      "Click Install to try again — or drag Beacon onto Applications in the download window.\n\n" +
+      "After that, open Beacon from Applications (⌘Space → “Beacon”).",
+    buttons: ["Install", "Continue anyway"],
+    defaultId: 0,
+    cancelId: 1,
+  });
+
+  if (response === 0) {
+    const retry = await moveToApplications();
+    if (retry.ok && retry.relaunch) {
+      app.quit();
+      return false;
+    }
+    await dialog.showMessageBox({
+      type: "warning",
+      title: "Install manually",
+      message: "Drag Beacon to Applications",
+      detail:
+        (retry.error ? `${retry.error}\n\n` : "") +
+        "In the download window, drag the Beacon icon onto the Applications folder.",
+      buttons: ["OK"],
+    });
+  }
+
+  return true;
+}
+
+function openConnectionsWindow() {
+  if (connectionsWin && !connectionsWin.isDestroyed()) {
+    connectionsWin.show();
+    connectionsWin.focus();
+    return;
+  }
+
+  connectionsWin = new BrowserWindow({
+    width: 520,
+    height: 640,
+    minWidth: 420,
+    minHeight: 480,
+    title: "Set up Beacon",
+    backgroundColor: "#f3f5f7",
+    show: false,
+    webPreferences: {
+      preload: path.join(__dirname, "preload.js"),
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: true,
+    },
+  });
+
+  connectionsWin.loadFile(path.join(__dirname, "..", "ui", "connections.html"));
+  connectionsWin.once("ready-to-show", () => {
+    if (connectionsWin && !connectionsWin.isDestroyed()) {
+      connectionsWin.show();
+    }
+  });
+  connectionsWin.on("closed", () => {
+    connectionsWin = null;
   });
 }
 
@@ -199,7 +462,7 @@ function defaultPosition() {
   const display = screen.getPrimaryDisplay();
   const { width, height } = display.workArea;
   return {
-    x: display.workArea.x + width - SIZE - 28,
+    x: display.workArea.x + width - ORB_WIDTH - 28,
     y: display.workArea.y + Math.round(height * 0.35),
   };
 }
@@ -209,36 +472,37 @@ function clampToVisible(x, y) {
   for (const d of displays) {
     const a = d.workArea;
     if (
-      x + SIZE > a.x &&
+      x + ORB_WIDTH > a.x &&
       x < a.x + a.width &&
-      y + SIZE > a.y &&
+      y + ORB_HEIGHT > a.y &&
       y < a.y + a.height
     ) {
       return {
-        x: Math.min(Math.max(x, a.x), a.x + a.width - SIZE),
-        y: Math.min(Math.max(y, a.y), a.y + a.height - SIZE),
+        x: Math.min(Math.max(x, a.x), a.x + a.width - ORB_WIDTH),
+        y: Math.min(Math.max(y, a.y), a.y + a.height - ORB_HEIGHT),
       };
     }
   }
   return defaultPosition();
 }
 
-function notifyAttention(kind) {
+function notifyAttention(kind, entry) {
   if (!prefs.notify) return;
   if (!Notification.isSupported()) return;
+  const snap = entry || status;
   const isAction = kind === "action";
+  const who = snap.app || snap.source || "Agent";
   const n = new Notification({
-    title: isAction ? "Beacon — needs you" : "Cursor agent finished",
+    title: isAction ? `Beacon — ${who} needs you` : `${who} finished`,
     body: isAction
-      ? "The agent asked a question or needs a decision. Click to jump back."
-      : status.label
-        ? `${status.label} is done — click the beacon to jump back.`
-        : "Click the beacon to jump back to this Cursor chat.",
+      ? "The agent asked a question or needs a decision. Click its orb to jump back."
+      : snap.label
+        ? `${snap.label} is done — click its orb to jump back.`
+        : "Click the orb to jump back.",
     silent: true,
   });
   n.on("click", async () => {
-    await activateApp("cursor");
-    setStatus({ state: "idle" });
+    await activateApp(snap.source || "cursor");
   });
   n.show();
 }
@@ -252,19 +516,224 @@ function playAttentionSound(kind) {
   execFile("afplay", [sound], () => {});
 }
 
+function idleSnapshot() {
+  return {
+    state: "idle",
+    source: null,
+    app: null,
+    label: null,
+    conversationId: null,
+    workspaceRoot: null,
+    surface: null,
+    composerMode: null,
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+function statusPayload() {
+  return {
+    ...status,
+    sources: Object.fromEntries(bySource),
+    orbs: [...orbs.keys()],
+  };
+}
+
 function broadcast() {
-  const payload = `data: ${JSON.stringify(status)}\n\n`;
+  const payload = `data: ${JSON.stringify(statusPayload())}\n\n`;
   for (const client of sseClients) {
     client.write(payload);
   }
-  if (win && !win.isDestroyed()) {
-    win.webContents.send("status", status);
+  for (const [src, w] of orbs) {
+    if (!w || w.isDestroyed()) continue;
+    const st =
+      src === "home"
+        ? idleSnapshot()
+        : bySource.get(src) || { ...idleSnapshot(), source: src };
+    w.webContents.send("status", { ...st, orbSource: src });
   }
   updateTray();
 }
 
+function sessionKey(source, conversationId) {
+  const src = (source || "unknown").toLowerCase();
+  return `${src}:${conversationId || src}`;
+}
+
+function pickBest(entries) {
+  const rank = { working: 3, action: 2, done: 1, idle: 0 };
+  return [...entries].sort((a, b) => {
+    const rd = (rank[b.state] || 0) - (rank[a.state] || 0);
+    if (rd !== 0) return rd;
+    return String(b.updatedAt).localeCompare(String(a.updatedAt));
+  })[0];
+}
+
+function positionFor(source, index) {
+  const saved = prefs.positions && prefs.positions[source];
+  if (saved && Number.isFinite(saved.x) && Number.isFinite(saved.y)) {
+    return clampToVisible(saved.x, saved.y);
+  }
+  const base =
+    prefs.x != null && prefs.y != null
+      ? clampToVisible(prefs.x, prefs.y)
+      : defaultPosition();
+  return clampToVisible(base.x, base.y + index * (ORB_HEIGHT + 10));
+}
+
+function closeOrb(source) {
+  const w = orbs.get(source);
+  if (w && !w.isDestroyed()) {
+    w.destroy();
+  }
+  orbs.delete(source);
+}
+
+function ensureOrb(source, stackIndex = 0) {
+  const existing = orbs.get(source);
+  if (existing && !existing.isDestroyed()) return existing;
+
+  const pos = positionFor(source, stackIndex);
+
+  const w = new BrowserWindow({
+    width: ORB_WIDTH,
+    height: ORB_HEIGHT,
+    x: pos.x,
+    y: pos.y,
+    frame: false,
+    transparent: true,
+    alwaysOnTop: true,
+    resizable: false,
+    maximizable: false,
+    minimizable: false,
+    fullscreenable: false,
+    skipTaskbar: true,
+    hasShadow: false,
+    show: false,
+    focusable: true,
+    acceptFirstMouse: true,
+    webPreferences: {
+      preload: path.join(__dirname, "preload.js"),
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: true,
+      additionalArguments: [`--beacon-source=${source}`],
+    },
+  });
+
+  w.setAlwaysOnTop(true, "screen-saver");
+  w.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+  if (typeof w.setExcludedFromShownWindowsMenu === "function") {
+    w.setExcludedFromShownWindowsMenu(true);
+  }
+
+  const html = path.join(__dirname, "..", "ui", "index.html");
+  w.loadFile(html, { query: { source } });
+
+  w.once("ready-to-show", () => {
+    if (!w.isDestroyed()) w.showInactive();
+  });
+
+  let moveTimer = null;
+  w.on("moved", () => {
+    if (w.isDestroyed()) return;
+    clearTimeout(moveTimer);
+    moveTimer = setTimeout(() => {
+      const [x, y] = w.getPosition();
+      if (!prefs.positions) prefs.positions = {};
+      prefs.positions[source] = { x, y };
+      if (source === "home" || orbs.size === 1) {
+        prefs.x = x;
+        prefs.y = y;
+      }
+      savePrefs();
+    }, 200);
+  });
+
+  w.on("closed", () => {
+    if (orbs.get(source) === w) orbs.delete(source);
+  });
+
+  orbs.set(source, w);
+  return w;
+}
+
+function syncOrbs(attention) {
+  const active = [...bySource.entries()]
+    .filter(([, s]) => s.state && s.state !== "idle")
+    .map(([src]) => src)
+    .sort(
+      (a, b) =>
+        (SOURCE_ORDER.indexOf(a) === -1 ? 99 : SOURCE_ORDER.indexOf(a)) -
+        (SOURCE_ORDER.indexOf(b) === -1 ? 99 : SOURCE_ORDER.indexOf(b))
+    );
+
+  const wanted = active.length ? active : ["home"];
+
+  wanted.forEach((src, i) => ensureOrb(src, i));
+  for (const src of [...orbs.keys()]) {
+    if (!wanted.includes(src)) closeOrb(src);
+  }
+
+  broadcast();
+
+  if (attention && attention.state !== "working") {
+    playAttentionSound(attention.state);
+    notifyAttention(attention.state, attention);
+    const w = orbs.get(attention.source);
+    if (w && !w.isDestroyed()) {
+      w.setAlwaysOnTop(true, "screen-saver");
+      w.showInactive();
+    }
+  }
+}
+
+function recomputeAggregate(prevBySource) {
+  const grouped = new Map();
+  for (const entry of sessions.values()) {
+    if (!entry.source || entry.state === "idle") continue;
+    const list = grouped.get(entry.source) || [];
+    list.push(entry);
+    grouped.set(entry.source, list);
+  }
+
+  bySource.clear();
+  for (const [src, list] of grouped) {
+    bySource.set(src, pickBest(list));
+  }
+
+  const all = [...bySource.values()];
+  if (!all.length) {
+    status = idleSnapshot();
+    syncOrbs(null);
+    return { ok: true, status, sessions: sessions.size, sources: 0 };
+  }
+
+  status = { ...pickBest(all), updatedAt: new Date().toISOString() };
+
+  let attention = null;
+  for (const [src, snap] of bySource) {
+    const prev = prevBySource && prevBySource.get(src);
+    const prevState = prev ? prev.state : "idle";
+    if (
+      (snap.state === "done" && prevState !== "done") ||
+      (snap.state === "action" && prevState !== "action")
+    ) {
+      attention = snap;
+    }
+  }
+
+  syncOrbs(attention);
+  return {
+    ok: true,
+    status,
+    sessions: sessions.size,
+    sources: bySource.size,
+    orbs: [...orbs.keys()],
+  };
+}
+
 function setStatus(next) {
-  const prev = status.state;
+  const prevBySource = new Map(bySource);
   const state = String(next.state || "idle").toLowerCase();
   if (!["idle", "working", "action", "done"].includes(state)) {
     return { ok: false, error: "state must be idle, working, action, or done" };
@@ -278,9 +747,13 @@ function setStatus(next) {
       ? String(next.app)
       : source === "claude"
         ? "Claude"
-        : source === "cursor"
-          ? "Cursor"
-          : status.app;
+        : source === "codex"
+          ? "Codex"
+          : source === "http"
+            ? "Custom"
+            : source === "cursor"
+              ? "Cursor"
+              : status.app;
 
   const surfaceRaw = next.surface != null ? String(next.surface) : status.surface;
   const surface =
@@ -288,7 +761,17 @@ function setStatus(next) {
       ? surfaceRaw
       : status.surface;
 
-  status = {
+  const conversationId =
+    next.conversationId != null
+      ? String(next.conversationId)
+      : next.conversationId === null
+        ? null
+        : null;
+  const key = sessionKey(source, conversationId);
+  const prevForKey =
+    sessions.get(key) || (source ? bySource.get(source) : null);
+
+  const entry = {
     state,
     source: source || null,
     app: appName || null,
@@ -297,53 +780,62 @@ function setStatus(next) {
         ? String(next.label)
         : next.label === null
           ? null
-          : status.label,
+          : prevForKey?.label || null,
     conversationId:
       next.conversationId != null
         ? String(next.conversationId)
         : next.conversationId === null
           ? null
-          : status.conversationId,
+          : prevForKey?.conversationId || null,
     workspaceRoot:
       next.workspaceRoot != null
         ? String(next.workspaceRoot)
         : next.workspaceRoot === null
           ? null
-          : status.workspaceRoot,
-    surface: surface || null,
+          : prevForKey?.workspaceRoot || null,
+    surface: surface || prevForKey?.surface || null,
     composerMode:
       next.composerMode != null
         ? String(next.composerMode)
         : next.composerMode === null
           ? null
-          : status.composerMode,
+          : prevForKey?.composerMode || null,
     updatedAt: new Date().toISOString(),
   };
 
-  if (status.conversationId) {
-    sessions.set(status.conversationId, { ...status });
-    // Cap memory
+  if (state === "idle") {
+    if (next.clearAll) {
+      sessions.clear();
+    } else if (next.clearSource || entry.source) {
+      // Clear this workflow's sessions (whole app orb → idle).
+      for (const [k, v] of [...sessions]) {
+        if (v.source === entry.source) sessions.delete(k);
+      }
+    } else {
+      sessions.delete(key);
+    }
+  } else {
+    sessions.set(key, entry);
     if (sessions.size > 40) {
       const first = sessions.keys().next().value;
       sessions.delete(first);
     }
-  }
-
-  broadcast();
-
-  if (
-    (state === "done" && prev !== "done") ||
-    (state === "action" && prev !== "action")
-  ) {
-    playAttentionSound(state);
-    notifyAttention(state);
-    if (win && !win.isDestroyed()) {
-      win.setAlwaysOnTop(true, "screen-saver");
-      win.showInactive();
+    // Drop phantom mirrors: same Cursor chat attributed to another host app.
+    if (entry.source === "cursor" && entry.conversationId) {
+      for (const [k, v] of [...sessions]) {
+        if (
+          k !== key &&
+          v.source &&
+          v.source !== "cursor" &&
+          v.conversationId === entry.conversationId
+        ) {
+          sessions.delete(k);
+        }
+      }
     }
   }
 
-  return { ok: true, status, sessions: sessions.size };
+  return recomputeAggregate(prevBySource);
 }
 
 function focusHintsForStatus(s) {
@@ -442,19 +934,22 @@ async function activateApp(preferred) {
 
   try {
     const source = (preferred || status.source || "cursor").toLowerCase();
+    const snap = bySource.get(source) || status;
 
-    // Clear attention states immediately so extra clicks don't re-fire focus.
-    if (status.state === "done" || status.state === "action") {
-      setStatus({ state: "idle" });
+    if (snap.state === "done" || snap.state === "action") {
+      // Clear this workflow's orb only — other orbs stay lit.
+      setStatus({
+        state: "idle",
+        source,
+        clearSource: true,
+      });
     }
 
-    if (source === "cursor" || source === "Cursor") {
+    // Cursor gets Agents Window–aware focusing.
+    if (source === "cursor") {
       const workspace =
-        status.workspaceRoot || path.resolve(__dirname, "..");
-      const hints = focusHintsForStatus(status);
-
-      // IMPORTANT: only activate the already-running Cursor app.
-      // Never `cursor -r <path>` / `open -a Cursor <path>` — that spawns new IDE windows.
+        snap.workspaceRoot || path.resolve(__dirname, "..");
+      const hints = focusHintsForStatus(snap);
       try {
         await execFileAsync("osascript", [
           "-e",
@@ -463,43 +958,49 @@ async function activateApp(preferred) {
       } catch {
         await execFileAsync("open", ["-a", "Cursor"]);
       }
-
       const raised = await focusCursorWindow(hints);
       return {
         ok: true,
         app: "Cursor",
-        target: status.surface || prefs.focusPreference || "auto",
+        target: snap.surface || prefs.focusPreference || "auto",
         workspace,
-        conversationId: status.conversationId,
+        conversationId: snap.conversationId,
         window: raised,
         hints,
       };
     }
 
-    if (source === "claude") {
-      for (const name of APP_BUNDLES.claude) {
-        try {
-          await execFileAsync("osascript", [
-            "-e",
-            `tell application "${name}" to activate`,
-          ]);
-          return { ok: true, app: name };
-        } catch {
-          // try next
-        }
-      }
+    let candidates = APP_BUNDLES[source] || [];
+    try {
+      candidates = connectionsModule().focusAppsFor(source) || candidates;
+    } catch {
+      // ignore
+    }
+    if (!candidates.length) {
+      candidates = ["Cursor"];
+    }
+
+    for (const name of candidates) {
       try {
-        await execFileAsync("open", ["-a", "Claude"]);
-        return { ok: true, app: "Claude", via: "open" };
-      } catch (err) {
-        return {
-          ok: false,
-          error: String(err && err.message ? err.message : err),
-        };
+        await execFileAsync("osascript", [
+          "-e",
+          `tell application "${name}" to activate`,
+        ]);
+        return { ok: true, app: name, source };
+      } catch {
+        // try next
       }
     }
 
-    return { ok: false, error: `unknown source: ${source}` };
+    try {
+      await execFileAsync("open", ["-a", candidates[0]]);
+      return { ok: true, app: candidates[0], source, via: "open" };
+    } catch (err) {
+      return {
+        ok: false,
+        error: String(err && err.message ? err.message : err),
+      };
+    }
   } finally {
     focusInFlight = false;
   }
@@ -552,8 +1053,52 @@ function createServer() {
         return;
       }
 
+      if (req.method === "POST" && url.pathname === "/open-connections") {
+        openConnectionsWindow();
+        sendJson(res, 200, { ok: true });
+        return;
+      }
+
+      if (req.method === "GET" && url.pathname === "/connections") {
+        try {
+          sendJson(res, 200, {
+            ok: true,
+            connections: connectionsModule().listConnections(PORT),
+          });
+        } catch (err) {
+          sendJson(res, 500, { ok: false, error: String(err) });
+        }
+        return;
+      }
+
+      if (req.method === "POST" && url.pathname.startsWith("/connections/")) {
+        const parts = url.pathname.split("/").filter(Boolean);
+        // /connections/:id/connect|disconnect
+        const id = parts[1];
+        const action = parts[2];
+        try {
+          const mod = connectionsModule();
+          if (action === "connect") {
+            const result = mod.connect(id);
+            sendJson(res, 200, result);
+            if (result.ok && RESTART_APPS[id]) {
+              offerRestartAfterConnect(id);
+            }
+            return;
+          }
+          if (action === "disconnect") {
+            sendJson(res, 200, mod.disconnect(id));
+            return;
+          }
+          sendJson(res, 404, { ok: false, error: "use /connect or /disconnect" });
+        } catch (err) {
+          sendJson(res, 500, { ok: false, error: String(err) });
+        }
+        return;
+      }
+
       if (req.method === "GET" && url.pathname === "/status") {
-        sendJson(res, 200, status);
+        sendJson(res, 200, statusPayload());
         return;
       }
 
@@ -564,7 +1109,7 @@ function createServer() {
           Connection: "keep-alive",
           "Access-Control-Allow-Origin": "*",
         });
-        res.write(`data: ${JSON.stringify(status)}\n\n`);
+        res.write(`data: ${JSON.stringify(statusPayload())}\n\n`);
         sseClients.add(res);
         req.on("close", () => sseClients.delete(res));
         return;
@@ -585,8 +1130,13 @@ function createServer() {
       }
 
       if (req.method === "POST" && url.pathname === "/ack") {
-        setStatus({ state: "idle" });
-        sendJson(res, 200, { ok: true, status });
+        const body = await readBody(req).catch(() => ({}));
+        setStatus({
+          state: "idle",
+          source: body.source || status.source,
+          clearSource: true,
+        });
+        sendJson(res, 200, { ok: true, status: statusPayload() });
         return;
       }
 
@@ -606,76 +1156,31 @@ function createServer() {
 }
 
 function createWindow() {
-  const fallback = defaultPosition();
-  const pos =
-    prefs.x != null && prefs.y != null
-      ? clampToVisible(prefs.x, prefs.y)
-      : fallback;
-
-  win = new BrowserWindow({
-    width: SIZE,
-    height: SIZE,
-    x: pos.x,
-    y: pos.y,
-    frame: false,
-    transparent: true,
-    alwaysOnTop: true,
-    resizable: false,
-    maximizable: false,
-    minimizable: false,
-    fullscreenable: false,
-    skipTaskbar: true,
-    hasShadow: false,
-    show: false,
-    focusable: true,
-    acceptFirstMouse: true,
-    webPreferences: {
-      preload: path.join(__dirname, "preload.js"),
-      contextIsolation: true,
-      nodeIntegration: false,
-      sandbox: true,
-    },
-  });
-
-  win.setAlwaysOnTop(true, "screen-saver");
-  win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
-  if (typeof win.setExcludedFromShownWindowsMenu === "function") {
-    win.setExcludedFromShownWindowsMenu(true);
-  }
-
-  win.loadFile(path.join(__dirname, "..", "ui", "index.html"));
-  win.once("ready-to-show", () => {
-    if (win && !win.isDestroyed()) {
-      win.showInactive();
-    }
-  });
-
-  let moveTimer = null;
-  win.on("moved", () => {
-    if (!win || win.isDestroyed()) return;
-    clearTimeout(moveTimer);
-    moveTimer = setTimeout(() => {
-      const [x, y] = win.getPosition();
-      prefs.x = x;
-      prefs.y = y;
-      savePrefs();
-    }, 200);
-  });
-
-  win.on("closed", () => {
-    win = null;
-  });
+  syncOrbs(null);
 }
 
 function trayIcon(state) {
+  const name = ["idle", "working", "action", "done"].includes(state)
+    ? state
+    : "idle";
+  const file = path.join(__dirname, "..", "ui", "tray", `${name}.png`);
+  try {
+    const img = nativeImage.createFromPath(file);
+    if (!img.isEmpty()) {
+      return img.resize({ width: 18, height: 18, quality: "best" });
+    }
+  } catch {
+    // fall through
+  }
+  // Fallback if PNG missing
   const colors = {
     idle: "#6B7280",
     working: "#D97706",
     action: "#E11D48",
     done: "#10B981",
   };
-  const color = colors[state] || colors.idle;
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"><circle cx="8" cy="8" r="6" fill="${color}"/></svg>`;
+  const color = colors[name] || colors.idle;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"><circle cx="9" cy="9" r="7" fill="${color}"/></svg>`;
   return nativeImage.createFromDataURL(
     `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`
   );
@@ -684,52 +1189,162 @@ function trayIcon(state) {
 function updateTray() {
   if (!tray) return;
   tray.setImage(trayIcon(status.state));
-  const label =
+  // Text in menu bar so Beacon is findable even when icons are crowded.
+  const title =
     status.state === "working"
-      ? `Working${status.source ? ` · ${status.source}` : ""}`
+      ? " Beacon"
       : status.state === "action"
-        ? `Needs you${status.source ? ` · ${status.source}` : ""} — click to answer`
+        ? " Ask"
         : status.state === "done"
-          ? `Done${status.source ? ` · ${status.source}` : ""} — click to focus`
-          : "Idle";
+          ? " Done"
+          : " Beacon";
+  tray.setTitle(title);
+  const parts = [...bySource.entries()].map(
+    ([src, s]) => `${SOURCE_SHORT[src] || src}:${s.state}`
+  );
+  const label = parts.length
+    ? parts.join(" · ")
+    : status.state === "idle"
+      ? "Idle"
+      : status.state;
   tray.setToolTip(`Beacon — ${label}`);
   tray.setContextMenu(buildTrayMenu());
 }
 
 function buildTrayMenu() {
-  return Menu.buildFromTemplate([
+  const items = /** @type {import('electron').MenuItemConstructorOptions[]} */ ([
     {
-      label: `State: ${status.state}`,
-      enabled: false,
+      label: "Set up apps…",
+      click: () => openConnectionsWindow(),
+    },
+    {
+      label: "First open help…",
+      click: () => openGatekeeperGuide({ force: true }),
     },
     { type: "separator" },
     {
-      label: "Mark Working",
-      click: () =>
-        setStatus({ state: "working", source: status.source || "cursor" }),
-    },
-    {
-      label: "Mark Needs You (question)",
-      click: () =>
-        setStatus({ state: "action", source: status.source || "cursor" }),
-    },
-    {
-      label: "Mark Done",
-      click: () =>
-        setStatus({ state: "done", source: status.source || "cursor" }),
-    },
-    {
-      label: "Mark Idle",
-      click: () => setStatus({ state: "idle" }),
-    },
-    { type: "separator" },
-    {
-      label: "Focus Agents Window",
-      click: async () => {
-        await activateApp("cursor");
+      label: "Play sound",
+      type: "checkbox",
+      checked: prefs.sound,
+      click: (item) => {
+        prefs.sound = item.checked;
+        savePrefs();
       },
     },
     {
+      label: "Show notification",
+      type: "checkbox",
+      checked: prefs.notify,
+      click: (item) => {
+        prefs.notify = item.checked;
+        savePrefs();
+      },
+    },
+    {
+      label: "Open at login",
+      type: "checkbox",
+      checked: prefs.launchAtLogin,
+      click: (item) => {
+        prefs.launchAtLogin = item.checked;
+        savePrefs();
+        applyLoginItem();
+      },
+    },
+  ]);
+
+  if (app.isPackaged && !isInstalledInApplications()) {
+    items.push({ type: "separator" });
+    items.push({
+      label: "Add to Applications…",
+      click: async () => {
+        const result = await moveToApplications();
+        if (result.ok && result.relaunch) {
+          app.quit();
+          return;
+        }
+        if (result.already) {
+          dialog.showMessageBox({
+            type: "info",
+            title: "Beacon",
+            message: "Beacon is already in Applications.",
+            buttons: ["OK"],
+          });
+          return;
+        }
+        dialog.showMessageBox({
+          type: "warning",
+          title: "Beacon",
+          message: "Couldn’t move Beacon to Applications.",
+          detail: result.error || "Try dragging Beacon to Applications yourself.",
+          buttons: ["OK"],
+        });
+      },
+    });
+  }
+
+  items.push({ type: "separator" });
+  items.push({
+    label: "Show orbs",
+    click: () => {
+      if (!orbs.size) createWindow();
+      for (const w of orbs.values()) {
+        if (!w.isDestroyed()) {
+          w.show();
+          w.setAlwaysOnTop(true, "screen-saver");
+        }
+      }
+    },
+  });
+  items.push({
+    label: "Reset positions",
+    click: () => {
+      const pos = defaultPosition();
+      prefs.x = pos.x;
+      prefs.y = pos.y;
+      prefs.positions = {};
+      savePrefs();
+      let i = 0;
+      for (const [src, w] of orbs) {
+        if (w.isDestroyed()) continue;
+        const p = clampToVisible(pos.x, pos.y + i * (ORB_HEIGHT + 10));
+        w.setPosition(p.x, p.y);
+        i += 1;
+      }
+    },
+  });
+
+  if (!app.isPackaged) {
+    items.push({ type: "separator" });
+    items.push({
+      label: `State: ${status.state}`,
+      enabled: false,
+    });
+    items.push({
+      label: "Mark Working (dev)",
+      click: () =>
+        setStatus({ state: "working", source: status.source || "cursor" }),
+    });
+    items.push({
+      label: "Mark Needs You (dev)",
+      click: () =>
+        setStatus({ state: "action", source: status.source || "cursor" }),
+    });
+    items.push({
+      label: "Mark Done (dev)",
+      click: () =>
+        setStatus({ state: "done", source: status.source || "cursor" }),
+    });
+    items.push({
+      label: "Mark Idle (dev)",
+      click: () => setStatus({ state: "idle", clearAll: true }),
+    });
+    items.push({
+      label: "Focus last source",
+      click: async () => {
+        await activateApp(status.source || "cursor");
+      },
+    });
+    items.push({
       label: "Focus Preference",
       submenu: [
         {
@@ -763,71 +1378,102 @@ function buildTrayMenu() {
           },
         },
       ],
-    },
-    { type: "separator" },
-    {
-      label: "Play Sound When Done",
-      type: "checkbox",
-      checked: prefs.sound,
-      click: (item) => {
-        prefs.sound = item.checked;
-        savePrefs();
-      },
-    },
-    {
-      label: "Show Notification When Done",
-      type: "checkbox",
-      checked: prefs.notify,
-      click: (item) => {
-        prefs.notify = item.checked;
-        savePrefs();
-      },
-    },
-    {
-      label: "Launch at Login",
-      type: "checkbox",
-      checked: prefs.launchAtLogin,
-      click: (item) => {
-        prefs.launchAtLogin = item.checked;
-        savePrefs();
-        applyLoginItem();
-      },
-    },
-    { type: "separator" },
-    {
-      label: "Show Beacon",
-      click: () => {
-        if (win) {
-          win.show();
-          win.setAlwaysOnTop(true, "screen-saver");
-        } else {
-          createWindow();
-        }
-      },
-    },
-    {
-      label: "Reset Position",
-      click: () => {
-        const pos = defaultPosition();
-        prefs.x = pos.x;
-        prefs.y = pos.y;
-        savePrefs();
-        if (win && !win.isDestroyed()) {
-          win.setPosition(pos.x, pos.y);
-        }
-      },
-    },
-    {
+    });
+    items.push({
       label: "Open Status URL",
       click: () => shell.openExternal(`http://${HOST}:${PORT}/status`),
+    });
+  }
+
+  items.push({ type: "separator" });
+  items.push({ label: "Quit Beacon", role: "quit" });
+
+  return Menu.buildFromTemplate(items);
+}
+
+function appNameForSource(source) {
+  const map = {
+    cursor: "Cursor",
+    codex: "ChatGPT",
+    claude: "Claude",
+    http: "Custom",
+  };
+  return map[source] || "App";
+}
+
+function showOrbContextMenu(source) {
+  const src = (source || "home").toLowerCase();
+  const snap =
+    src !== "home" ? bySource.get(src) : null;
+  const win = orbs.get(src) || orbs.values().next().value || null;
+
+  const items = /** @type {import('electron').MenuItemConstructorOptions[]} */ ([]);
+
+  if (snap && (snap.state === "done" || snap.state === "action")) {
+    items.push({
+      label: `Open ${appNameForSource(src)}`,
+      click: () => activateApp(src),
+    });
+    items.push({ type: "separator" });
+  }
+
+  items.push({
+    label: "Set up apps…",
+    click: () => openConnectionsWindow(),
+  });
+  if (app.isPackaged) {
+    items.push({
+      label: "First open help…",
+      click: () => openGatekeeperGuide({ force: true }),
+    });
+  }
+  items.push({ type: "separator" });
+  items.push({
+    label: "Play sound",
+    type: "checkbox",
+    checked: prefs.sound,
+    click: (item) => {
+      prefs.sound = item.checked;
+      savePrefs();
     },
-    {
-      label: "Install Cursor Hooks",
-      click: () => installHooksFromApp(),
+  });
+  items.push({
+    label: "Show notification",
+    type: "checkbox",
+    checked: prefs.notify,
+    click: (item) => {
+      prefs.notify = item.checked;
+      savePrefs();
     },
-    { type: "separator" },
-    { label: "Quit Beacon", role: "quit" },
-  ]);
+  });
+  items.push({
+    label: "Open at login",
+    type: "checkbox",
+    checked: prefs.launchAtLogin,
+    click: (item) => {
+      prefs.launchAtLogin = item.checked;
+      savePrefs();
+      applyLoginItem();
+    },
+  });
+
+  if (app.isPackaged && !isInstalledInApplications()) {
+    items.push({ type: "separator" });
+    items.push({
+      label: "Add to Applications…",
+      click: async () => {
+        const result = await moveToApplications();
+        if (result.ok && result.relaunch) app.quit();
+      },
+    });
+  }
+
+  const menu = Menu.buildFromTemplate(items);
+  if (win && !win.isDestroyed()) {
+    menu.popup({ window: win });
+  } else {
+    menu.popup();
+  }
 }
 
 function createTray() {
@@ -835,7 +1481,7 @@ function createTray() {
   updateTray();
   tray.on("click", async () => {
     if (status.state === "done" || status.state === "action") {
-      await activateApp("cursor");
+      await activateApp(status.source || "cursor");
       return;
     }
     tray.popUpContextMenu();
@@ -845,30 +1491,104 @@ function createTray() {
   });
 }
 
-ipcMain.handle("get-status", () => status);
+ipcMain.handle("open-connections", () => {
+  openConnectionsWindow();
+  return { ok: true };
+});
+ipcMain.handle("gatekeeper-dismiss", () => dismissGatekeeperGuide());
+ipcMain.handle("gatekeeper-reveal", () => revealBeaconInApplications());
+ipcMain.handle("show-orb-menu", (_e, source) => {
+  showOrbContextMenu(source);
+  return { ok: true };
+});
+ipcMain.handle("get-install-status", () => ({
+  inApplications: isInstalledInApplications(),
+  canInstall: app.isPackaged && !isInstalledInApplications(),
+}));
+ipcMain.handle("install-to-applications", async () => {
+  const result = await moveToApplications();
+  if (result.ok && result.relaunch) {
+    app.quit();
+  }
+  return result;
+});
+ipcMain.handle("get-status", (_e, source) => {
+  if (source && source !== "home") {
+    return (
+      bySource.get(source) || {
+        ...idleSnapshot(),
+        source,
+        orbSource: source,
+      }
+    );
+  }
+  if (source === "home") return { ...idleSnapshot(), orbSource: "home" };
+  return statusPayload();
+});
 ipcMain.handle("set-status", (_e, next) => setStatus(next));
 ipcMain.handle("focus-app", async (_e, source) => {
-  return activateApp(source || "cursor");
+  return activateApp(source || status.source || "cursor");
 });
-ipcMain.handle("ack", () => setStatus({ state: "idle" }));
+ipcMain.handle("ack", (_e, source) =>
+  setStatus({
+    state: "idle",
+    source: source && source !== "home" ? source : status.source,
+    clearSource: true,
+  })
+);
+ipcMain.handle("list-connections", () => {
+  try {
+    return connectionsModule().listConnections(PORT);
+  } catch (err) {
+    return [{ id: "error", name: "Error", blurb: String(err), connected: false }];
+  }
+});
+ipcMain.handle("connect-workflow", async (_e, id) => {
+  try {
+    const result = connectionsModule().connect(id);
+    if (result.ok && RESTART_APPS[id]) {
+      await offerRestartAfterConnect(id);
+    }
+    return result;
+  } catch (err) {
+    return { ok: false, error: String(err) };
+  }
+});
+ipcMain.handle("disconnect-workflow", (_e, id) => {
+  try {
+    return connectionsModule().disconnect(id);
+  } catch (err) {
+    return { ok: false, error: String(err) };
+  }
+});
 
 const gotLock = app.requestSingleInstanceLock();
 if (!gotLock) {
   app.quit();
 } else {
   app.on("second-instance", () => {
-    if (win) {
-      win.show();
-      win.setAlwaysOnTop(true, "screen-saver");
+    if (!orbs.size) createWindow();
+    for (const w of orbs.values()) {
+      if (!w.isDestroyed()) {
+        w.show();
+        w.setAlwaysOnTop(true, "screen-saver");
+      }
     }
   });
 
   app.whenReady().then(async () => {
     loadPrefs();
-    // Only touch login items when enabled — unpackaged Electron often lacks permission.
-    if (prefs.launchAtLogin) {
-      applyLoginItem();
+
+    // Auto-install before anything else when opened from DMG/Downloads.
+    const proceed = await ensureInstalledInApplications();
+    if (!proceed) return;
+
+    // Default on — sync Login Items with prefs (dev uses Electron path + args).
+    if (prefs.launchAtLogin !== false) {
+      prefs.launchAtLogin = true;
+      savePrefs();
     }
+    applyLoginItem();
 
     if (process.platform === "darwin" && app.dock) {
       app.dock.hide();
@@ -889,6 +1609,7 @@ if (!gotLock) {
 
     createTray();
     createWindow();
+    await runGatekeeperGuide();
     await runFirstLaunchSetup();
   });
 

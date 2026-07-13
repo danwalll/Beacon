@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'"
+    />
+    <title>Set up Beacon</title>
+    <link rel="stylesheet" href="connections.css" />
+  </head>
+  <body>
+    <header>
+      <p class="eyebrow">Beacon</p>
+      <h1>Which apps should light up the orb?</h1>
+      <p>
+        Turn on the tools you use. Each one gets its own floating light so you
+        can tell them apart.
+      </p>
+    </header>
+    <main id="install-banner" class="install-banner" hidden></main>
+    <main id="list"></main>
+    <footer>
+      <p>
+        Leave Beacon running. After you turn something on, restart that app once.
+        <strong>Right-click the orb</strong> for options — set up apps, sound, and
+        more.
+      </p>
+    </footer>
+    <script src="connections-ui.js"></script>
+  </body>
+</html>

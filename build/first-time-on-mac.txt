@@ -1,0 +1,19 @@
+Beacon — first time on this Mac
+================================
+
+macOS may block Beacon once because it isn’t from the App Store.
+That’s normal. You only need to do this once.
+
+1. Double-click Beacon in this window.
+   It installs to your Applications folder.
+
+2. If Mac says Beacon “can’t be opened”:
+   • Open Applications
+   • Right-click Beacon
+   • Choose Open
+   • Click Open again
+
+3. Open Beacon anytime later:
+   Press ⌘Space, type Beacon, press Enter.
+
+Questions? Menu bar → Beacon → First open help…

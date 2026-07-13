@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
+# Claude Code: agent finished → done / action
 set -euo pipefail
-ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-export PATH="/Users/danwall/.nvm/versions/node/v22.22.3/bin:/opt/homebrew/bin:/usr/local/bin:$PATH"
-node "$ROOT/hooks/notify-from-hook.js" done claude
+DIR="$(cd "$(dirname "$0")" && pwd)"
+export PATH="/opt/homebrew/bin:/usr/local/bin:$HOME/.local/bin:$HOME/.nvm/versions/node/$(ls "$HOME/.nvm/versions/node" 2>/dev/null | tail -1)/bin:$PATH"
+if command -v node >/dev/null 2>&1; then
+  node "$DIR/notify-from-hook.js" done claude
+else
+  cat >/dev/null || true
+  "$DIR/notify.sh" done claude
+fi
 exit 0

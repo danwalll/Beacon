@@ -1,42 +1,92 @@
 const beaconEl = document.getElementById("beacon");
-const labelEl = document.getElementById("label");
+const shellEl = document.getElementById("shell");
+const tickerEl = document.getElementById("ticker");
+const trackEl = document.getElementById("ticker-track");
 let clickLock = false;
+
+const NAMES = {
+  cursor: "Cursor",
+  codex: "ChatGPT",
+  claude: "Claude",
+  http: "Custom",
+  home: "",
+};
+
+function displayName(source) {
+  return NAMES[source] || (source ? String(source) : "Agent");
+}
+
+function setLabel(text) {
+  if (!text) {
+    tickerEl.hidden = true;
+    tickerEl.classList.remove("is-scrolling");
+    trackEl.replaceChildren();
+    return;
+  }
+
+  tickerEl.hidden = false;
+  const span = document.createElement("span");
+  span.className = "ticker-text";
+  span.textContent = text;
+  trackEl.replaceChildren(span);
+
+  requestAnimationFrame(() => {
+    const needsScroll = span.scrollWidth > tickerEl.clientWidth + 1;
+    tickerEl.classList.toggle("is-scrolling", needsScroll);
+    if (!needsScroll) {
+      trackEl.replaceChildren(span);
+      return;
+    }
+    const dup = span.cloneNode(true);
+    dup.setAttribute("aria-hidden", "true");
+    span.textContent = `${text}   ·   `;
+    dup.textContent = `${text}   ·   `;
+    trackEl.replaceChildren(span, dup);
+  });
+}
 
 function applyStatus(status) {
   const state = status?.state || "idle";
-  beaconEl.classList.remove("idle", "working", "action", "done");
+  const source = status?.orbSource || status?.source || window.beacon.orbSource;
+  beaconEl.classList.remove("idle", "working", "action", "done", "is-clickable");
   beaconEl.classList.add(state);
-
-  if (state === "working") {
-    labelEl.textContent = "work";
-  } else if (state === "action") {
-    labelEl.textContent = "ask";
-  } else if (state === "done") {
-    labelEl.textContent = "done";
+  const clickable = state === "done" || state === "action";
+  if (clickable) {
+    beaconEl.classList.add("is-clickable");
+    shellEl?.classList.add("is-clickable");
   } else {
-    labelEl.textContent = "";
+    shellEl?.classList.remove("is-clickable");
   }
 
+  const who = displayName(source);
+  setLabel(state === "idle" ? "" : who);
+
+  const setupHint = " Right-click for options.";
   beaconEl.setAttribute(
     "aria-label",
     state === "action"
-      ? "Agent needs your answer. Click to focus."
+      ? `${who} needs your answer. Click to focus.${setupHint}`
       : state === "done"
-        ? `Agent finished${status.source ? ` in ${status.source}` : ""}. Click to focus.`
+        ? `${who} finished. Click to focus.${setupHint}`
         : state === "working"
-          ? `Agent working${status.source ? ` in ${status.source}` : ""}`
-          : "Beacon idle"
+          ? `${who} working.${setupHint}`
+          : `Beacon idle.${setupHint}`
   );
 }
 
-beaconEl.addEventListener("click", async () => {
+beaconEl.addEventListener("click", async (event) => {
   if (clickLock) return;
   const status = await window.beacon.getStatus();
   if (status.state !== "done" && status.state !== "action") return;
 
+  event.preventDefault();
+  event.stopPropagation();
+
   clickLock = true;
   try {
-    await window.beacon.focusApp("cursor");
+    const source =
+      status.source || window.beacon.orbSource || status.orbSource || "cursor";
+    await window.beacon.focusApp(source);
   } finally {
     setTimeout(() => {
       clickLock = false;
@@ -44,33 +94,11 @@ beaconEl.addEventListener("click", async () => {
   }
 });
 
-beaconEl.addEventListener("contextmenu", async (event) => {
+// Native macOS menu — like right-clicking a desktop file
+shellEl.addEventListener("contextmenu", (event) => {
   event.preventDefault();
-  const status = await window.beacon.getStatus();
-  if (status.state === "idle") {
-    await window.beacon.setStatus({
-      state: "working",
-      source: "cursor",
-      label: "Beacon",
-      workspaceRoot: "/Users/danwall/Beacon",
-    });
-  } else if (status.state === "working") {
-    await window.beacon.setStatus({
-      state: "action",
-      source: "cursor",
-      label: status.label || "Beacon",
-      workspaceRoot: status.workspaceRoot || "/Users/danwall/Beacon",
-    });
-  } else if (status.state === "action") {
-    await window.beacon.setStatus({
-      state: "done",
-      source: "cursor",
-      label: status.label || "Beacon",
-      workspaceRoot: status.workspaceRoot || "/Users/danwall/Beacon",
-    });
-  } else {
-    await window.beacon.ack();
-  }
+  const source = window.beacon.orbSource || "home";
+  window.beacon.showOrbMenu(source);
 });
 
 window.beacon.getStatus().then(applyStatus);
