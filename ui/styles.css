@@ -3,6 +3,8 @@
   --idle-glow: rgba(92, 101, 112, 0.35);
   --working: #e08a1e;
   --working-glow: rgba(224, 138, 30, 0.55);
+  --action: #e11d48;
+  --action-glow: rgba(225, 29, 72, 0.7);
   --done: #1fad6f;
   --done-glow: rgba(31, 173, 111, 0.65);
   --ink: #0f1419;
@@ -43,7 +45,6 @@ body {
   border: 1.5px solid rgba(255, 255, 255, 0.18);
   opacity: 0.55;
   transition: border-color 220ms ease, opacity 220ms ease, transform 220ms ease;
-  /* Drag from the outer ring to reposition the widget. */
   -webkit-app-region: drag;
 }
 
@@ -80,7 +81,8 @@ body {
 
 .beacon:hover .label,
 .beacon.done .label,
-.beacon.working .label {
+.beacon.working .label,
+.beacon.action .label {
   opacity: 1;
 }
 
@@ -108,6 +110,21 @@ body {
 .beacon.working .ring {
   border-color: rgba(240, 180, 70, 0.7);
   animation: ring-pulse 1.4s ease-in-out infinite;
+}
+
+/* Needs your answer / decision — unmistakably different from working & done */
+.beacon.action .core {
+  background: radial-gradient(circle at 35% 30%, #fb7185, var(--action));
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.22) inset,
+    0 8px 18px rgba(0, 0, 0, 0.35),
+    0 0 30px var(--action-glow);
+  animation: action-blink 0.9s ease-in-out infinite;
+}
+
+.beacon.action .ring {
+  border-color: rgba(251, 113, 133, 0.95);
+  animation: action-ring 1.1s ease-out infinite;
 }
 
 .beacon.done .core {
@@ -143,6 +160,33 @@ body {
   50% {
     transform: scale(1.08);
     opacity: 0.9;
+  }
+}
+
+@keyframes action-blink {
+  0%,
+  100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  40% {
+    transform: scale(1.12);
+    filter: brightness(1.25);
+  }
+  55% {
+    transform: scale(0.96);
+    filter: brightness(0.9);
+  }
+}
+
+@keyframes action-ring {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.45);
+    opacity: 0;
   }
 }
 

@@ -11,11 +11,13 @@
     "beacon": "electron .",
     "install:hooks": "node scripts/install-hooks.js",
     "demo:working": "node scripts/notify.js working cursor",
+    "demo:action": "node scripts/notify.js action cursor",
     "demo:done": "node scripts/notify.js done cursor",
     "demo:idle": "node scripts/notify.js idle",
     "pack": "electron-builder --dir",
     "dist": "electron-builder --mac",
-    "dist:zip": "electron-builder --mac zip"
+    "dist:zip": "electron-builder --mac zip",
+    "release": "bash scripts/release.sh"
   },
   "dependencies": {},
   "devDependencies": {
@@ -50,14 +52,8 @@
     "mac": {
       "category": "public.app-category.productivity",
       "target": [
-        {
-          "target": "dmg",
-          "arch": ["arm64", "x64"]
-        },
-        {
-          "target": "zip",
-          "arch": ["arm64", "x64"]
-        }
+        "dmg",
+        "zip"
       ],
       "hardenedRuntime": false,
       "gatekeeperAssess": false,

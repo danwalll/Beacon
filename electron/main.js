@@ -22,7 +22,7 @@ const PORT = Number(process.env.AGENT_BEACON_PORT || 17373);
 const HOST = "127.0.0.1";
 const SIZE = 72;
 
-/** @type {{ state: 'idle' | 'working' | 'done', source: string | null, app: string | null, label: string | null, conversationId: string | null, workspaceRoot: string | null, surface: 'agents' | 'editor' | 'unknown' | null, composerMode: string | null, updatedAt: string }} */
+/** @type {{ state: 'idle' | 'working' | 'action' | 'done', source: string | null, app: string | null, label: string | null, conversationId: string | null, workspaceRoot: string | null, surface: 'agents' | 'editor' | 'unknown' | null, composerMode: string | null, updatedAt: string }} */
 let status = {
   state: "idle",
   source: null,
@@ -39,7 +39,7 @@ let status = {
 /** @type {Map<string, typeof status>} */
 const sessions = new Map();
 
-/** @type {{ x: number | null, y: number | null, launchAtLogin: boolean, sound: boolean, notify: boolean, focusPreference: 'auto' | 'agents' | 'editor' }} */
+/** @type {{ x: number | null, y: number | null, launchAtLogin: boolean, sound: boolean, notify: boolean, focusPreference: 'auto' | 'agents' | 'editor', setupComplete: boolean }} */
 let prefs = {
   x: null,
   y: null,
@@ -47,6 +47,7 @@ let prefs = {
   sound: true,
   notify: true,
   focusPreference: "auto",
+  setupComplete: false,
 };
 
 /** @type {Set<import('http').ServerResponse>} */
@@ -80,6 +81,7 @@ function loadPrefs() {
       focusPreference: ["auto", "agents", "editor"].includes(raw.focusPreference)
         ? raw.focusPreference
         : "auto",
+      setupComplete: Boolean(raw.setupComplete),
     };
   } catch {
     // first run
@@ -95,7 +97,7 @@ function savePrefs() {
   }
 }
 
-function installHooksFromApp() {
+function installHooksFromApp({ silent = false } = {}) {
   try {
     const source = app.isPackaged
       ? path.join(process.resourcesPath, "hooks")
@@ -105,7 +107,6 @@ function installHooksFromApp() {
       : path.join(__dirname, "..", "scripts", "install-hooks.js");
 
     process.env.BEACON_HOOKS_SOURCE = source;
-    // Clear require cache so reinstall works in dev
     try {
       delete require.cache[require.resolve(installer)];
     } catch {
@@ -115,21 +116,63 @@ function installHooksFromApp() {
     if (typeof mod.main === "function") {
       mod.main();
     }
-    dialog.showMessageBox({
-      type: "info",
-      title: "Beacon",
-      message: "Cursor hooks installed",
-      detail:
-        "Hooks were copied to ~/.agent-beacon/hooks and registered in ~/.cursor/hooks.json.\n\nReload Cursor hooks (or restart Cursor), then keep Beacon running.",
-    });
+    if (!silent) {
+      dialog.showMessageBox({
+        type: "info",
+        title: "Beacon",
+        message: "Cursor hooks installed",
+        detail:
+          "Hooks were copied to ~/.agent-beacon/hooks and registered in ~/.cursor/hooks.json.\n\nReload Cursor hooks (or restart Cursor), then keep Beacon running.",
+      });
+    }
     return { ok: true };
   } catch (err) {
-    dialog.showErrorBox(
-      "Hook install failed",
-      String(err && err.message ? err.message : err)
-    );
+    if (!silent) {
+      dialog.showErrorBox(
+        "Hook install failed",
+        String(err && err.message ? err.message : err)
+      );
+    }
     return { ok: false, error: String(err) };
   }
+}
+
+async function runFirstLaunchSetup() {
+  if (!app.isPackaged || prefs.setupComplete) return;
+
+  const { response } = await dialog.showMessageBox({
+    type: "question",
+    title: "Welcome to Beacon",
+    message: "Set up Beacon in one step?",
+    detail:
+      "Beacon will:\n" +
+      "• Connect to Cursor (install hooks)\n" +
+      "• Start automatically at login\n" +
+      "• Sit on top of your desktop and turn green when an agent finishes\n\n" +
+      "After setup, restart Cursor once. If macOS asks for Accessibility later, allow Beacon so click-to-focus works.",
+    buttons: ["Set up now", "Skip for now"],
+    defaultId: 0,
+    cancelId: 1,
+  });
+
+  prefs.setupComplete = true;
+  savePrefs();
+
+  if (response !== 0) return;
+
+  const hooks = installHooksFromApp({ silent: true });
+  prefs.launchAtLogin = true;
+  savePrefs();
+  applyLoginItem();
+
+  await dialog.showMessageBox({
+    type: hooks.ok ? "info" : "warning",
+    title: "Beacon",
+    message: hooks.ok ? "You're set" : "Almost set",
+    detail: hooks.ok
+      ? "1. Restart Cursor (or reload hooks)\n2. Keep Beacon running in the menu bar\n3. When an agent finishes, the orb turns green — click it to jump back\n\nMenu bar icon → Install Cursor Hooks if you ever need to reconnect."
+      : `Hooks could not be installed automatically:\n${hooks.error || "unknown error"}\n\nUse the menu bar icon → Install Cursor Hooks.`,
+  });
 }
 
 function applyLoginItem() {
@@ -180,21 +223,17 @@ function clampToVisible(x, y) {
   return defaultPosition();
 }
 
-function playDoneSound() {
-  if (!prefs.sound) return;
-  const sound =
-    "/System/Library/Sounds/Glass.aiff";
-  execFile("afplay", [sound], () => {});
-}
-
-function notifyDone() {
+function notifyAttention(kind) {
   if (!prefs.notify) return;
   if (!Notification.isSupported()) return;
+  const isAction = kind === "action";
   const n = new Notification({
-    title: "Cursor agent finished",
-    body: status.label
-      ? `${status.label} is done — click the beacon to jump back.`
-      : "Click the beacon to jump back to this Cursor chat.",
+    title: isAction ? "Beacon — needs you" : "Cursor agent finished",
+    body: isAction
+      ? "The agent asked a question or needs a decision. Click to jump back."
+      : status.label
+        ? `${status.label} is done — click the beacon to jump back.`
+        : "Click the beacon to jump back to this Cursor chat.",
     silent: true,
   });
   n.on("click", async () => {
@@ -202,6 +241,15 @@ function notifyDone() {
     setStatus({ state: "idle" });
   });
   n.show();
+}
+
+function playAttentionSound(kind) {
+  if (!prefs.sound) return;
+  const sound =
+    kind === "action"
+      ? "/System/Library/Sounds/Purr.aiff"
+      : "/System/Library/Sounds/Glass.aiff";
+  execFile("afplay", [sound], () => {});
 }
 
 function broadcast() {
@@ -218,8 +266,8 @@ function broadcast() {
 function setStatus(next) {
   const prev = status.state;
   const state = String(next.state || "idle").toLowerCase();
-  if (!["idle", "working", "done"].includes(state)) {
-    return { ok: false, error: "state must be idle, working, or done" };
+  if (!["idle", "working", "action", "done"].includes(state)) {
+    return { ok: false, error: "state must be idle, working, action, or done" };
   }
 
   const source = next.source
@@ -283,9 +331,12 @@ function setStatus(next) {
 
   broadcast();
 
-  if (state === "done" && prev !== "done") {
-    playDoneSound();
-    notifyDone();
+  if (
+    (state === "done" && prev !== "done") ||
+    (state === "action" && prev !== "action")
+  ) {
+    playAttentionSound(state);
+    notifyAttention(state);
     if (win && !win.isDestroyed()) {
       win.setAlwaysOnTop(true, "screen-saver");
       win.showInactive();
@@ -392,8 +443,8 @@ async function activateApp(preferred) {
   try {
     const source = (preferred || status.source || "cursor").toLowerCase();
 
-    // Clear done immediately so extra clicks don't re-fire focus.
-    if (status.state === "done") {
+    // Clear attention states immediately so extra clicks don't re-fire focus.
+    if (status.state === "done" || status.state === "action") {
       setStatus({ state: "idle" });
     }
 
@@ -620,6 +671,7 @@ function trayIcon(state) {
   const colors = {
     idle: "#6B7280",
     working: "#D97706",
+    action: "#E11D48",
     done: "#10B981",
   };
   const color = colors[state] || colors.idle;
@@ -635,9 +687,11 @@ function updateTray() {
   const label =
     status.state === "working"
       ? `Working${status.source ? ` · ${status.source}` : ""}`
-      : status.state === "done"
-        ? `Done${status.source ? ` · ${status.source}` : ""} — click to focus`
-        : "Idle";
+      : status.state === "action"
+        ? `Needs you${status.source ? ` · ${status.source}` : ""} — click to answer`
+        : status.state === "done"
+          ? `Done${status.source ? ` · ${status.source}` : ""} — click to focus`
+          : "Idle";
   tray.setToolTip(`Beacon — ${label}`);
   tray.setContextMenu(buildTrayMenu());
 }
@@ -653,6 +707,11 @@ function buildTrayMenu() {
       label: "Mark Working",
       click: () =>
         setStatus({ state: "working", source: status.source || "cursor" }),
+    },
+    {
+      label: "Mark Needs You (question)",
+      click: () =>
+        setStatus({ state: "action", source: status.source || "cursor" }),
     },
     {
       label: "Mark Done",
@@ -775,7 +834,7 @@ function createTray() {
   tray = new Tray(trayIcon("idle"));
   updateTray();
   tray.on("click", async () => {
-    if (status.state === "done") {
+    if (status.state === "done" || status.state === "action") {
       await activateApp("cursor");
       return;
     }
@@ -830,6 +889,7 @@ if (!gotLock) {
 
     createTray();
     createWindow();
+    await runFirstLaunchSetup();
   });
 
   app.on("window-all-closed", (e) => {

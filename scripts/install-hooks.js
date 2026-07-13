@@ -37,6 +37,7 @@ const HOOK_FILES = [
   "cursor-working.sh",
   "cursor-done.sh",
   "cursor-session.sh",
+  "cursor-response.sh",
   "claude-working.sh",
   "claude-done.sh",
   "notify.sh",
@@ -106,6 +107,7 @@ function installCursor() {
   const cursorWorking = path.join(INSTALL_DIR, "cursor-working.sh");
   const cursorDone = path.join(INSTALL_DIR, "cursor-done.sh");
   const cursorSession = path.join(INSTALL_DIR, "cursor-session.sh");
+  const cursorResponse = path.join(INSTALL_DIR, "cursor-response.sh");
 
   const config = readJson(CURSOR_HOOKS, { version: 1, hooks: {} });
   config.version = config.version || 1;
@@ -117,6 +119,10 @@ function installCursor() {
   config.hooks.beforeSubmitPrompt = upsertCursorHook(
     config.hooks.beforeSubmitPrompt,
     cursorWorking
+  );
+  config.hooks.afterAgentResponse = upsertCursorHook(
+    config.hooks.afterAgentResponse,
+    cursorResponse
   );
   config.hooks.stop = upsertCursorHook(config.hooks.stop, cursorDone);
   writeJson(CURSOR_HOOKS, config);
