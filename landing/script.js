@@ -5,7 +5,7 @@ const CHECKOUT_URL =
   "https://beacon.lemonsqueezy.com/checkout/buy/PLACEHOLDER";
 
 // Wire buy buttons
-for (const btn of document.querySelectorAll("#buy, #buy-bottom")) {
+for (const btn of document.querySelectorAll("#buy, #buy-bottom, #buy-nav")) {
   btn.href = CHECKOUT_URL;
 }
 
