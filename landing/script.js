@@ -1,8 +1,6 @@
-// ── Lemon Squeezy checkout ──────────────────────────────────────────
-// Paste your real checkout URL here after creating the product:
-//   https://beacon.lemonsqueezy.com/checkout/buy/YOUR_PRODUCT_ID
+// Lemon Squeezy checkout: getbeacon.lemonsqueezy.com
 const CHECKOUT_URL =
-  "https://beacon.lemonsqueezy.com/checkout/buy/PLACEHOLDER";
+  "https://getbeacon.lemonsqueezy.com/checkout/buy/84c2b343-6b5b-41b8-8a46-ce42cd010072";
 
 // Wire buy buttons
 for (const btn of document.querySelectorAll("#buy, #buy-bottom, #buy-nav")) {
