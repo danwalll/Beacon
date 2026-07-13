@@ -650,9 +650,7 @@ body {
 .cta-bottom {
   margin-top: 48px;
   display: flex;
-  flex-wrap: wrap;
   justify-content: center;
-  gap: 12px;
 }
 
 /* ── Footer ── */
@@ -720,16 +718,10 @@ footer p {
   }
 
   .cta-bottom {
-    flex-direction: column;
     align-items: stretch;
   }
 
-  .btn-dark,
-  .btn-ghost {
+  .btn-dark {
     text-align: center;
-  }
-
-  .topnav-actions .btn-ghost {
-    display: none;
   }
 }
