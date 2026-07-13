@@ -673,6 +673,13 @@ footer p {
   color: var(--text-secondary);
 }
 
+.footer-credit {
+  margin-bottom: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+}
+
 .footer-fine {
   margin-top: 4px;
   font-size: 11px;
