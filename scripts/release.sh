@@ -14,19 +14,26 @@ esac
 echo "→ Installing deps"
 npm install --silent
 
-echo "→ Building Beacon for $EB_ARCH"
-npx electron-builder --mac dmg zip --"$EB_ARCH"
+chmod +x "$ROOT/build/Install Beacon.command" 2>/dev/null || true
+
+echo "→ Building Beacon.app ($EB_ARCH)"
+npx electron-builder --mac dir --"$EB_ARCH"
 
 APP="$ROOT/dist/mac-${EB_ARCH}/Beacon.app"
 if [[ ! -d "$APP" ]]; then
-  # electron-builder sometimes uses mac/ for x64
   APP="$ROOT/dist/mac/Beacon.app"
 fi
-
-if [[ -d "$APP" ]]; then
-  echo "→ Ad-hoc code signing (easier Gatekeeper Open on other Macs)"
-  codesign --force --deep --sign - "$APP" 2>/dev/null || true
+if [[ ! -d "$APP" ]]; then
+  echo "Build failed — Beacon.app not found in dist/" >&2
+  exit 1
 fi
+
+echo "→ Clearing quarantine attrs + ad-hoc signing"
+xattr -cr "$APP" 2>/dev/null || true
+codesign --force --deep --sign - "$APP" 2>/dev/null || true
+
+echo "→ Packaging DMG + zip"
+npx electron-builder --mac dmg zip --"$EB_ARCH" --prepackaged "$APP"
 
 echo
 echo "Done. Share one of these:"
@@ -34,9 +41,6 @@ ls -lh "$ROOT/dist"/Beacon*."$EB_ARCH"* 2>/dev/null || ls -lh "$ROOT/dist"/Beaco
 echo
 echo "Recipient steps:"
 echo "  1. Open the DMG (double-click the download)"
-echo "  2. Double-click Beacon — it installs to Applications automatically"
-echo "     (or click Add to Applications in the setup window)"
-echo "  3. First launch: follow First time on Mac (in the DMG or in the app)"
-echo "     If blocked: Applications → right-click Beacon → Open → Open"
-echo "  4. Right-click the orb → Turn on Claude (or Cursor / ChatGPT)"
-echo "  5. Restart that app once"
+echo "  2. Double-click Install Beacon (not the Beacon icon)"
+echo "  3. If Mac asks, click Open / Allow"
+echo "  4. Set up apps → turn on Claude → restart Claude once"

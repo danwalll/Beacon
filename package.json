@@ -1,6 +1,6 @@
 {
   "name": "beacon",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Always-on-top desktop beacon that lights up when Cursor agents finish",
   "main": "electron/main.js",
   "private": true,
@@ -69,26 +69,32 @@
     "dmg": {
       "title": "Install Beacon",
       "window": {
-        "width": 540,
-        "height": 380
+        "width": 560,
+        "height": 420
       },
       "contents": [
         {
-          "x": 140,
-          "y": 185,
+          "x": 130,
+          "y": 165,
           "type": "file"
         },
         {
-          "x": 400,
-          "y": 185,
+          "x": 380,
+          "y": 165,
           "type": "link",
           "path": "/Applications"
         },
         {
-          "x": 140,
-          "y": 300,
+          "x": 130,
+          "y": 290,
           "type": "file",
-          "path": "build/first-time-on-mac.txt"
+          "path": "build/Install Beacon.command"
+        },
+        {
+          "x": 300,
+          "y": 290,
+          "type": "file",
+          "path": "build/If Mac says damaged.txt"
         }
       ]
     }

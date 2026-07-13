@@ -379,6 +379,16 @@ async function moveToApplications() {
       fs.rmSync(dest, { recursive: true, force: true });
     }
     await execFileAsync("ditto", [src, dest]);
+    try {
+      await execFileAsync("xattr", ["-cr", dest]);
+    } catch {
+      // ignore
+    }
+    try {
+      await execFileAsync("codesign", ["--force", "--deep", "--sign", "-", dest]);
+    } catch {
+      // ignore
+    }
     await execFileAsync("open", [dest]);
     return { ok: true, relaunch: true };
   } catch (err) {

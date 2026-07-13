@@ -1,0 +1,24 @@
+If Mac says Beacon is “damaged”
+================================
+
+This is normal for apps downloaded in Chrome. Beacon is fine.
+
+DO NOT click “Move to Trash”.
+
+Instead:
+
+Option A (easiest)
+------------------
+1. Open the Beacon download (DMG) if it isn’t open already.
+2. Double-click **Install Beacon** (not the Beacon icon).
+3. If Mac asks, click Open / Allow.
+
+Option B (manual)
+-----------------
+1. Drag **Beacon** onto **Applications**.
+2. Open **Terminal** (⌘Space → type Terminal → Enter).
+3. Paste this line and press Enter:
+
+   xattr -cr /Applications/Beacon.app && open /Applications/Beacon.app
+
+Then: ⌘Space → type Beacon → Enter.
