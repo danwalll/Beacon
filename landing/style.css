@@ -194,10 +194,10 @@ body {
   box-shadow: var(--shadow);
 }
 
-.hero-card-fine {
-  margin-top: 12px;
-  font-size: 12px;
-  line-height: 1.4;
+.hero-setup {
+  margin-top: 14px;
+  font-size: 13px;
+  line-height: 1.5;
   letter-spacing: -0.01em;
   color: var(--text-secondary);
   text-align: center;
@@ -464,64 +464,6 @@ body {
   letter-spacing: -0.01em;
   text-align: center;
   color: var(--text-tertiary);
-}
-
-/* How it works */
-
-.how {
-  margin-top: var(--section-gap);
-}
-
-.steps {
-  list-style: none;
-  margin-top: 24px;
-  display: grid;
-  gap: 0;
-  background: var(--bg-elevated);
-  border: 0.5px solid var(--separator);
-  border-radius: var(--radius-md);
-  overflow: hidden;
-}
-
-.step {
-  display: flex;
-  gap: 14px;
-  align-items: flex-start;
-  padding: 16px;
-  border-bottom: 0.5px solid var(--separator);
-}
-
-.step:last-child {
-  border-bottom: none;
-}
-
-.step-num {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: var(--fill);
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-secondary);
-}
-
-.step strong {
-  display: block;
-  font-size: 15px;
-  font-weight: 600;
-  letter-spacing: -0.022em;
-}
-
-.step p {
-  margin-top: 3px;
-  font-size: 13px;
-  line-height: 1.45;
-  letter-spacing: -0.01em;
-  color: var(--text-secondary);
 }
 
 /* Calculator */
