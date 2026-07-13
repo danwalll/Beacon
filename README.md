@@ -34,10 +34,15 @@ Floating orbs on your desktop — one per app — so you always know when an AI 
 ```bash
 cd ~/Beacon
 bash scripts/install-app.sh   # rebuild + install to /Applications
-npm run release               # DMG in dist/
+npm run release               # DMG in dist/ + stable Beacon-<arch>.dmg copy
+npm run publish               # build + GitHub release (versioned + stable assets)
 ```
 
-Creates `dist/Beacon-1.1.1-<arch>.dmg`. AirDrop, Drive, or attach to a GitHub Release.
+Creates `dist/Beacon-<version>-<arch>.dmg` and stable `dist/Beacon-<arch>.dmg` for:
+
+`https://github.com/danwalll/Beacon/releases/latest/download/Beacon-arm64.dmg`
+
+Add that URL in **Lemon Squeezy → Product → Links** so buyers always get the latest build without re-uploading the DMG.
 
 ```bash
 npm start              # run from source

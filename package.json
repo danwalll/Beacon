@@ -18,6 +18,7 @@
     "dist": "electron-builder --mac",
     "dist:zip": "electron-builder --mac zip",
     "release": "bash scripts/release.sh",
+    "publish": "bash scripts/publish-release.sh",
     "install:app": "bash scripts/install-app.sh"
   },
   "dependencies": {},
