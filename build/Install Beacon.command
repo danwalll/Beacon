@@ -7,9 +7,11 @@ SRC="$DIR/Beacon.app"
 DEST="/Applications/Beacon.app"
 
 if [[ ! -d "$SRC" ]]; then
-  osascript -e 'display alert "Beacon.app not found" message "Open the Beacon download (DMG) first, then run Install Beacon again." as warning'
+  osascript -e 'display alert "Beacon.app not found" message "Open the Beacon download (DMG) first, then double-click Install Beacon again." as warning'
   exit 1
 fi
+
+osascript -e 'display notification "Installing Beacon…" with title "Beacon"'
 
 echo "Installing Beacon to Applications…"
 rm -rf "$DEST"
@@ -19,3 +21,5 @@ codesign --force --deep --sign - "$DEST" 2>/dev/null || true
 
 echo "Opening Beacon…"
 open "$DEST"
+
+osascript -e 'display notification "You’re all set — turn on your apps in Set up." with title "Beacon installed"'

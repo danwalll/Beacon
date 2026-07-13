@@ -16,6 +16,9 @@ npm install --silent
 
 chmod +x "$ROOT/build/Install Beacon.command" 2>/dev/null || true
 
+echo "→ Generating DMG artwork"
+swift "$ROOT/scripts/generate-dmg-background.swift" "$ROOT/build/dmg-background.png" "$ROOT/build/icon-1024.png"
+
 echo "→ Building Beacon.app ($EB_ARCH)"
 npx electron-builder --mac dir --"$EB_ARCH"
 
