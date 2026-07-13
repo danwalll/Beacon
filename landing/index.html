@@ -3,10 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Beacon — Know when your AI agent needs you</title>
+    <title>Beacon — Know when your background agent needs you</title>
     <meta
       name="description"
-      content="A floating Mac orb that lights up when Cursor, Claude, or ChatGPT finishes. $3.99 once. Pays for itself in one afternoon."
+      content="For Mac users who spin up AI agents and walk away. A floating orb lights up when Cursor, Claude Cowork, or Codex finishes. $3.99 once."
     />
     <link rel="stylesheet" href="style.css" />
   </head>
@@ -57,8 +57,12 @@
     <header class="hero">
       <div class="hero-inner">
         <div class="hero-copy">
-          <h1>Know when your agent needs you</h1>
-          <p class="hero-sub">Your always-on partner for AI on Mac</p>
+          <p class="hero-kicker">For people who orchestrate agents and walk away</p>
+          <h1>Spin up the agent. Switch windows. Know when it’s done.</h1>
+          <p class="hero-sub">
+            Not everyone who uses Claude — the slice that delegates background tasks,
+            runs Cowork, and keeps working elsewhere. That workflow is growing every month.
+          </p>
 
           <div class="hero-card">
             <a class="btn-dark btn-block" id="buy" href="#">Get Beacon — $3.99</a>
@@ -95,9 +99,10 @@
     <main class="below-fold">
       <!-- Supported workflows -->
       <section class="workflows" aria-labelledby="workflows-title">
-        <h2 id="workflows-title">Works with</h2>
+        <h2 id="workflows-title">Walk-away workflows</h2>
         <p class="workflows-lede">
-          Background agents on your Mac — while you work somewhere else.
+          You start the agent, leave the app, and come back when it pings you.
+          Beacon watches the Mac apps that actually run in the background.
         </p>
         <ul class="workflow-grid">
           <li class="workflow-card">
@@ -108,7 +113,7 @@
               </span>
               <span class="workflow-badge workflow-badge--yes">Supported</span>
             </div>
-            <p>Composer and agent chats while you code in another window.</p>
+            <p>Composer and agent mode while you’re in another repo or window.</p>
           </li>
           <li class="workflow-card">
             <div class="workflow-head">
@@ -118,7 +123,7 @@
               </span>
               <span class="workflow-badge workflow-badge--yes">Supported</span>
             </div>
-            <p>Delegated tasks, skills, and file work in the Claude Mac app.</p>
+            <p>Delegate a task with skills, close the pane, let Cowork run.</p>
           </li>
           <li class="workflow-card">
             <div class="workflow-head">
@@ -128,7 +133,7 @@
               </span>
               <span class="workflow-badge workflow-badge--yes">Supported</span>
             </div>
-            <p>The coding agent in Terminal, iTerm, Warp, or Ghostty.</p>
+            <p>Terminal agent loops while you review, meet, or ship something else.</p>
           </li>
           <li class="workflow-card">
             <div class="workflow-head">
@@ -138,11 +143,14 @@
               </span>
               <span class="workflow-badge workflow-badge--yes">Supported</span>
             </div>
-            <p>ChatGPT’s coding agent on your Mac.</p>
+            <p>Codex on your Mac — kick off a run and get back to your day.</p>
           </li>
         </ul>
 
-        <h3 class="workflows-subtitle" id="workflows-no-title">Doesn’t work with</h3>
+        <h3 class="workflows-subtitle" id="workflows-no-title">Not for babysitting chat</h3>
+        <p class="workflows-lede workflows-lede--no">
+          If you’re staring at the thread waiting for each reply, you don’t need Beacon.
+        </p>
         <ul class="workflow-grid workflow-grid--no" aria-labelledby="workflows-no-title">
           <li class="workflow-card workflow-card--no">
             <div class="workflow-head">
@@ -152,7 +160,7 @@
               </span>
               <span class="workflow-badge workflow-badge--no">Not supported</span>
             </div>
-            <p>Back-and-forth conversation in the Claude app — you’re already watching it.</p>
+            <p>Live back-and-forth in the Claude app — you’re already there.</p>
           </li>
           <li class="workflow-card workflow-card--no">
             <div class="workflow-head">
@@ -162,7 +170,7 @@
               </span>
               <span class="workflow-badge workflow-badge--no">Not supported</span>
             </div>
-            <p>Skills that run inside Chat threads, without Cowork’s agent loop.</p>
+            <p>Skills inside Chat threads without Cowork’s background agent loop.</p>
           </li>
           <li class="workflow-card workflow-card--no">
             <div class="workflow-head">
@@ -189,27 +197,27 @@
 
       <!-- How it works -->
       <section class="how" aria-labelledby="how-title">
-        <h2 id="how-title">How it works</h2>
+        <h2 id="how-title">Set up once, then orchestrate</h2>
         <ol class="steps">
           <li class="step">
             <span class="step-num">1</span>
             <div>
               <strong>Buy &amp; install</strong>
-              <p>Checkout takes a minute. You’ll get a download link by email, then open the .dmg.</p>
+              <p>Checkout takes a minute. Download from email, open the .dmg, drag to Applications.</p>
             </div>
           </li>
           <li class="step">
             <span class="step-num">2</span>
             <div>
-              <strong>Auto-connects your apps</strong>
-              <p>On first launch, Beacon links to Cursor, Claude, and ChatGPT — no setup.</p>
+              <strong>Auto-connects your agents</strong>
+              <p>First launch links Cursor, Claude Cowork, and Codex — no manual hook setup.</p>
             </div>
           </li>
           <li class="step">
             <span class="step-num">3</span>
             <div>
-              <strong>Restart once</strong>
-              <p>Quit and reopen your AI apps so Beacon can watch them. That’s it.</p>
+              <strong>Restart once, then walk away</strong>
+              <p>Quit and reopen your AI apps. After that, run agents in the background and let the orb tell you when to return.</p>
             </div>
           </li>
         </ol>
@@ -217,14 +225,15 @@
 
       <!-- ROI calculator -->
       <section class="calc" aria-labelledby="calc-title">
-        <h2 id="calc-title">What waiting costs you</h2>
+        <h2 id="calc-title">What walking away costs you</h2>
         <p class="calc-note">
-          Agents run while you do other work. This is how long you’re late noticing each finish.
+          Each background run you notice late is a few minutes of dead air.
+          Tune this to how you actually orchestrate agents.
         </p>
 
         <label class="calc-slider">
           <span class="calc-slider-top">
-            <span>AI sessions per day</span>
+            <span>Background agent runs per day</span>
             <output id="sessions-out">12</output>
           </span>
           <input id="sessions" type="range" min="4" max="24" value="12" />
@@ -262,10 +271,10 @@
 
       <footer>
         <p>
-          macOS 13+ · Apple Silicon (M1–M4) · Cursor, Claude Desktop Cowork, ChatGPT
+          macOS 13+ · Apple Silicon · Cursor, Claude Cowork, Claude Code, Codex
         </p>
         <p class="footer-fine">
-          First open: right-click → Open if macOS asks. v1.1.5
+          Built for async agent workflows on Mac. First open: right-click → Open if macOS asks. v1.1.5
         </p>
       </footer>
     </main>

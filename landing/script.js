@@ -11,10 +11,10 @@ for (const btn of document.querySelectorAll("#buy, #buy-bottom, #buy-nav")) {
 
 // ── Orb demo cycle ────────────────────────────────────────────────
 const ORB_STATES = [
-  { id: "gray", label: "Idle — no agent running" },
-  { id: "amber", label: "Working — agent is thinking" },
-  { id: "rose", label: "Needs you — waiting for input" },
-  { id: "green", label: "Done — task finished" },
+  { id: "gray", label: "Idle — no background agent" },
+  { id: "amber", label: "Running — you’re somewhere else" },
+  { id: "rose", label: "Blocked — agent needs input" },
+  { id: "green", label: "Done — time to come back" },
 ];
 
 const orbDemo = document.getElementById("orb-demo");

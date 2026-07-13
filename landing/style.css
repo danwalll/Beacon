@@ -171,6 +171,14 @@ body {
   padding-right: 16px;
 }
 
+.hero-kicker {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
 .hero-copy h1 {
   font-family: var(--serif);
   font-size: clamp(2.25rem, 4.5vw, 3.5rem);
@@ -178,15 +186,17 @@ body {
   letter-spacing: -0.03em;
   line-height: 1.08;
   color: var(--text);
+  margin-top: 14px;
 }
 
 .hero-sub {
   margin-top: 20px;
-  font-family: var(--serif);
-  font-size: clamp(1.125rem, 2vw, 1.375rem);
-  font-weight: 600;
-  line-height: 1.35;
-  color: var(--text);
+  font-family: var(--font);
+  font-size: clamp(1rem, 1.8vw, 1.125rem);
+  font-weight: 400;
+  line-height: 1.55;
+  color: var(--muted);
+  max-width: 42ch;
 }
 
 .hero-card {
@@ -439,6 +449,11 @@ body {
   line-height: 1.5;
   color: var(--muted);
   text-align: center;
+}
+
+.workflows-lede--no {
+  margin-top: 8px;
+  margin-bottom: 4px;
 }
 
 .workflow-grid {
