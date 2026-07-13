@@ -54,32 +54,80 @@ drawCentered(
   color: NSColor(calibratedWhite: 0.25, alpha: 1)
 )
 
-// Apple-style curved arrow between icon centers (~180,210) → (~480,210)
+// Apple-style curved arrow between icon centers
+let p0 = CGPoint(x: 248, y: 192)
+let p1 = CGPoint(x: 300, y: 228)
+let p2 = CGPoint(x: 360, y: 156)
+let p3 = CGPoint(x: 404, y: 192)
+
+func bezierPoint(
+  _ t: CGFloat,
+  _ p0: CGPoint,
+  _ p1: CGPoint,
+  _ p2: CGPoint,
+  _ p3: CGPoint
+) -> CGPoint {
+  let u = 1 - t
+  let tt = t * t
+  let uu = u * u
+  let uuu = uu * u
+  let ttt = tt * t
+  return CGPoint(
+    x: uuu * p0.x + 3 * uu * t * p1.x + 3 * u * tt * p2.x + ttt * p3.x,
+    y: uuu * p0.y + 3 * uu * t * p1.y + 3 * u * tt * p2.y + ttt * p3.y
+  )
+}
+
+func bezierTangent(
+  _ t: CGFloat,
+  _ p0: CGPoint,
+  _ p1: CGPoint,
+  _ p2: CGPoint,
+  _ p3: CGPoint
+) -> CGPoint {
+  let u = 1 - t
+  return CGPoint(
+    x: 3 * u * u * (p1.x - p0.x) + 6 * u * t * (p2.x - p1.x) + 3 * t * t * (p3.x - p2.x),
+    y: 3 * u * u * (p1.y - p0.y) + 6 * u * t * (p2.y - p1.y) + 3 * t * t * (p3.y - p2.y)
+  )
+}
+
 ctx.saveGState()
-ctx.setStrokeColor(CGColor(red: 0.45, green: 0.45, blue: 0.47, alpha: 0.42))
+let arrowColor = CGColor(red: 0.45, green: 0.45, blue: 0.47, alpha: 0.48)
+ctx.setStrokeColor(arrowColor)
+ctx.setFillColor(arrowColor)
 ctx.setLineWidth(1.5)
-ctx.setLineCap(.round)
 ctx.setLineJoin(.round)
 
-let arrow = CGMutablePath()
-arrow.move(to: CGPoint(x: 248, y: 192))
-arrow.addCurve(
-  to: CGPoint(x: 412, y: 192),
-  control1: CGPoint(x: 300, y: 228),
-  control2: CGPoint(x: 360, y: 156)
-)
-ctx.addPath(arrow)
-ctx.strokePath()
+let junction = bezierPoint(1, p0, p1, p2, p3)
+let tan = bezierTangent(1, p0, p1, p2, p3)
+let len = max(hypot(tan.x, tan.y), 0.001)
+let ux = tan.x / len
+let uy = tan.y / len
+let px = -uy
+let py = ux
 
-// Chevron head
-ctx.setFillColor(CGColor(red: 0.45, green: 0.45, blue: 0.47, alpha: 0.5))
+let tipLen: CGFloat = 12
+let wingSpread: CGFloat = 5.5
+let tip = CGPoint(x: junction.x + ux * tipLen, y: junction.y + uy * tipLen)
+let wingA = CGPoint(x: junction.x + px * wingSpread, y: junction.y + py * wingSpread)
+let wingB = CGPoint(x: junction.x - px * wingSpread, y: junction.y - py * wingSpread)
+
+// Head first, then shaft with a round cap into the head base
 let head = CGMutablePath()
-head.move(to: CGPoint(x: 412, y: 192))
-head.addLine(to: CGPoint(x: 400, y: 186))
-head.addLine(to: CGPoint(x: 400, y: 198))
+head.move(to: wingA)
+head.addLine(to: tip)
+head.addLine(to: wingB)
 head.closeSubpath()
 ctx.addPath(head)
 ctx.fillPath()
+
+let shaft = CGMutablePath()
+shaft.move(to: p0)
+shaft.addCurve(to: junction, control1: p1, control2: p2)
+ctx.setLineCap(.round)
+ctx.addPath(shaft)
+ctx.strokePath()
 ctx.restoreGState()
 
 // Footer note — secondary label style
