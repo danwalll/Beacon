@@ -416,117 +416,54 @@ body {
   text-align: center;
 }
 
-/* Workflows (grouped list) */
+/* Compatibility */
 
-.workflows {
+.compat {
   margin-top: 48px;
 }
 
-.workflows-subtitle {
-  margin-top: 36px;
-  font-size: 22px;
-  font-weight: 600;
-  letter-spacing: -0.022em;
-  text-align: center;
-  color: var(--text-secondary);
-}
-
-.workflows-lede--no {
-  margin-top: 6px;
-  margin-bottom: 2px;
-}
-
-.workflow-group {
+.app-strip {
   list-style: none;
-  margin-top: 20px;
-  background: var(--bg-elevated);
-  border: 0.5px solid var(--separator);
-  border-radius: var(--radius-md);
-  overflow: hidden;
-}
-
-.workflow-group--muted {
-  background: var(--fill-secondary);
-}
-
-.workflow-card {
-  padding: 14px 16px;
-  border-bottom: 0.5px solid var(--separator);
-}
-
-.workflow-card:last-child {
-  border-bottom: none;
-}
-
-.workflow-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  margin-top: 28px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
 }
 
-.workflow-brand {
+.app-chip {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 11px;
-  min-width: 0;
+  gap: 10px;
+  padding: 18px 10px;
+  background: var(--bg-elevated);
+  border: 0.5px solid var(--separator);
+  border-radius: var(--radius-md);
 }
 
-.workflow-logo {
-  flex-shrink: 0;
-  width: 26px;
-  height: 26px;
-  border-radius: 6px;
+.app-chip__icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
   object-fit: cover;
 }
 
-.workflow-logo--generic {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--fill);
-  color: var(--text-secondary);
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-}
-
-.workflow-group--muted .workflow-logo {
-  opacity: 0.55;
-}
-
-.workflow-head strong {
-  font-size: 15px;
-  font-weight: 600;
-  letter-spacing: -0.022em;
-}
-
-.workflow-badge {
-  flex-shrink: 0;
-  padding: 2px 8px;
-  border-radius: 6px;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-}
-
-.workflow-badge--yes {
-  background: color-mix(in srgb, var(--green) 14%, transparent);
-  color: var(--green);
-}
-
-.workflow-badge--no {
-  background: var(--fill);
-  color: var(--text-secondary);
-}
-
-.workflow-card p {
-  margin-top: 6px;
-  padding-left: 37px;
+.app-chip__name {
   font-size: 13px;
-  line-height: 1.4;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  text-align: center;
+  line-height: 1.25;
+  color: var(--text);
+}
+
+.compat-skip {
+  margin-top: 20px;
+  font-size: 13px;
+  line-height: 1.45;
   letter-spacing: -0.01em;
-  color: var(--text-secondary);
+  text-align: center;
+  color: var(--text-tertiary);
 }
 
 /* How it works */
@@ -803,7 +740,7 @@ footer p {
     --section-gap: 48px;
   }
 
-  .workflow-card p {
-    padding-left: 0;
+  .app-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

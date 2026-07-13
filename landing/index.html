@@ -59,101 +59,34 @@
     </header>
 
     <main class="below-fold">
-      <section class="workflows" aria-labelledby="workflows-title">
-        <h2 id="workflows-title" class="section-title">Walk away workflows</h2>
+      <section class="compat" aria-labelledby="compat-title">
+        <h2 id="compat-title" class="section-title">Works with</h2>
         <p class="section-lede">
-          Start the agent, leave the app, come back when it pings you.
-          Beacon watches the Mac apps that run in the background.
+          Background agents on Mac. Start a run, walk away, come back when the orb lights up.
         </p>
-        <ul class="workflow-group">
-          <li class="workflow-card">
-            <div class="workflow-head">
-              <span class="workflow-brand">
-                <img class="workflow-logo" src="icons/cursor.png" width="26" height="26" alt="" />
-                <strong>Cursor</strong>
-              </span>
-              <span class="workflow-badge workflow-badge--yes">Supported</span>
-            </div>
-            <p>Composer and agent mode while you are in another repo or window.</p>
+
+        <ul class="app-strip">
+          <li class="app-chip">
+            <img class="app-chip__icon" src="icons/cursor.png" width="44" height="44" alt="" />
+            <span class="app-chip__name">Cursor</span>
           </li>
-          <li class="workflow-card">
-            <div class="workflow-head">
-              <span class="workflow-brand">
-                <img class="workflow-logo" src="icons/claude.png" width="26" height="26" alt="" />
-                <strong>Claude Desktop, Cowork</strong>
-              </span>
-              <span class="workflow-badge workflow-badge--yes">Supported</span>
-            </div>
-            <p>Delegate a task with skills, close the pane, let Cowork run.</p>
+          <li class="app-chip">
+            <img class="app-chip__icon" src="icons/claude.png" width="44" height="44" alt="" />
+            <span class="app-chip__name">Claude Cowork</span>
           </li>
-          <li class="workflow-card">
-            <div class="workflow-head">
-              <span class="workflow-brand">
-                <img class="workflow-logo" src="icons/claude.png" width="26" height="26" alt="" />
-                <strong>Claude Code</strong>
-              </span>
-              <span class="workflow-badge workflow-badge--yes">Supported</span>
-            </div>
-            <p>Terminal agent loops while you review, meet, or ship something else.</p>
+          <li class="app-chip">
+            <img class="app-chip__icon" src="icons/claude.png" width="44" height="44" alt="" />
+            <span class="app-chip__name">Claude Code</span>
           </li>
-          <li class="workflow-card">
-            <div class="workflow-head">
-              <span class="workflow-brand">
-                <img class="workflow-logo" src="icons/codex.png" width="26" height="26" alt="" />
-                <strong>ChatGPT, Codex</strong>
-              </span>
-              <span class="workflow-badge workflow-badge--yes">Supported</span>
-            </div>
-            <p>Codex on your Mac. Kick off a run and get back to your day.</p>
+          <li class="app-chip">
+            <img class="app-chip__icon" src="icons/codex.png" width="44" height="44" alt="" />
+            <span class="app-chip__name">Codex</span>
           </li>
         </ul>
 
-        <h3 class="workflows-subtitle" id="workflows-no-title">Not for babysitting chat</h3>
-        <p class="section-lede workflows-lede--no">
-          If you are staring at the thread waiting for each reply, you do not need Beacon.
+        <p class="compat-skip">
+          Not for live chat, browser tabs, or Windows/Linux.
         </p>
-        <ul class="workflow-group workflow-group--muted" aria-labelledby="workflows-no-title">
-          <li class="workflow-card">
-            <div class="workflow-head">
-              <span class="workflow-brand">
-                <img class="workflow-logo" src="icons/claude.png" width="26" height="26" alt="" />
-                <strong>Claude Chat</strong>
-              </span>
-              <span class="workflow-badge workflow-badge--no">Not supported</span>
-            </div>
-            <p>Live chat in the Claude app. You are already there.</p>
-          </li>
-          <li class="workflow-card">
-            <div class="workflow-head">
-              <span class="workflow-brand">
-                <img class="workflow-logo" src="icons/claude.png" width="26" height="26" alt="" />
-                <strong>Skills in Chat only</strong>
-              </span>
-              <span class="workflow-badge workflow-badge--no">Not supported</span>
-            </div>
-            <p>Skills inside Chat threads without Cowork’s background agent loop.</p>
-          </li>
-          <li class="workflow-card">
-            <div class="workflow-head">
-              <span class="workflow-brand">
-                <img class="workflow-logo" src="icons/browser.png" width="26" height="26" alt="" />
-                <strong>Browser only AI</strong>
-              </span>
-              <span class="workflow-badge workflow-badge--no">Not supported</span>
-            </div>
-            <p>claude.ai, chatgpt.com, and other tabs. No Mac app hooks to watch.</p>
-          </li>
-          <li class="workflow-card">
-            <div class="workflow-head">
-              <span class="workflow-brand">
-                <span class="workflow-logo workflow-logo--generic" aria-hidden="true">PC</span>
-                <strong>Windows or Linux</strong>
-              </span>
-              <span class="workflow-badge workflow-badge--no">Not supported</span>
-            </div>
-            <p>Beacon is macOS only. Apple Silicon recommended.</p>
-          </li>
-        </ul>
       </section>
 
       <section class="how" aria-labelledby="how-title">
