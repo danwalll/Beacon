@@ -3,28 +3,118 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Beacon — Stop waiting on your AI</title>
+    <title>Beacon — Know when your AI agent needs you</title>
     <meta
       name="description"
-      content="A floating Mac orb that lights up when Cursor, Claude, or ChatGPT finishes. Pays for itself in one afternoon."
+      content="A floating Mac orb that lights up when Cursor, Claude, or ChatGPT finishes. $3.99 once. Pays for itself in one afternoon."
     />
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
     <main class="page">
+      <!-- Hero -->
       <header class="hero">
-        <div class="orb" aria-hidden="true">
-          <span class="orb-core"></span>
-          <span class="orb-ring"></span>
-        </div>
         <p class="eyebrow">For Mac · Cursor · Claude · ChatGPT</p>
-        <h1>Know the second your agent is done.</h1>
+        <h1>Know when your AI agent needs you</h1>
         <p class="lede">
-          Stop tab-switching to check if the AI finished. Beacon lights up on your
-          desktop — amber while working, green when done, red when it needs you.
+          Beacon sits in your menubar and glows on your desktop — gray when idle,
+          amber while working, rose when it needs input, green when done.
         </p>
+        <div class="hero-cta">
+          <!-- Lemon Squeezy checkout URL is set in script.js (CHECKOUT_URL) -->
+          <a class="btn-primary" id="buy" href="#">Get Beacon — $3.99</a>
+          <a
+            class="btn-secondary"
+            id="download"
+            href="https://github.com/danwalll/Beacon/releases/latest"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Download free from GitHub
+          </a>
+        </div>
+        <p class="hero-note">One-time purchase · No subscription · Runs locally</p>
       </header>
 
+      <!-- Demo visual -->
+      <section class="demo" aria-label="Beacon orb demo">
+        <div class="demo-frame">
+          <div class="demo-desktop" aria-hidden="true">
+            <div class="demo-menubar">
+              <span class="menubar-dot"></span>
+              <span class="menubar-dot"></span>
+              <span class="menubar-dot"></span>
+              <span class="menubar-spacer"></span>
+              <span class="menubar-beacon"></span>
+            </div>
+            <div class="demo-stage">
+              <div class="orb-demo" id="orb-demo">
+                <span class="orb-glow"></span>
+                <span class="orb-core"></span>
+                <span class="orb-ring"></span>
+              </div>
+              <p class="demo-label" id="demo-label">Working…</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- State cards -->
+      <section class="states" aria-labelledby="states-title">
+        <h2 id="states-title" class="visually-hidden">Orb states</h2>
+        <ul class="state-grid">
+          <li class="state-card" data-state="gray">
+            <span class="state-dot state-dot--gray"></span>
+            <strong>Gray</strong>
+            <span>Idle — no agent running</span>
+          </li>
+          <li class="state-card" data-state="amber">
+            <span class="state-dot state-dot--amber"></span>
+            <strong>Amber</strong>
+            <span>Working — agent is thinking</span>
+          </li>
+          <li class="state-card" data-state="rose">
+            <span class="state-dot state-dot--rose"></span>
+            <strong>Rose</strong>
+            <span>Needs you — waiting for input</span>
+          </li>
+          <li class="state-card" data-state="green">
+            <span class="state-dot state-dot--green"></span>
+            <strong>Green</strong>
+            <span>Done — task finished</span>
+          </li>
+        </ul>
+      </section>
+
+      <!-- How it works -->
+      <section class="how" aria-labelledby="how-title">
+        <h2 id="how-title">How it works</h2>
+        <ol class="steps">
+          <li class="step">
+            <span class="step-num">1</span>
+            <div>
+              <strong>Install Beacon</strong>
+              <p>Download the .dmg and drag Beacon to Applications.</p>
+            </div>
+          </li>
+          <li class="step">
+            <span class="step-num">2</span>
+            <div>
+              <strong>Auto-connects your apps</strong>
+              <p>On first launch, Beacon links to Cursor, Claude, and ChatGPT — no setup.</p>
+            </div>
+          </li>
+          <li class="step">
+            <span class="step-num">3</span>
+            <div>
+              <strong>Restart once</strong>
+              <p>Quit and reopen your AI apps so Beacon can watch them. That’s it.</p>
+            </div>
+          </li>
+        </ol>
+      </section>
+
+      <!-- ROI calculator -->
       <section class="calc" aria-labelledby="calc-title">
         <h2 id="calc-title">What waiting costs you</h2>
         <p class="calc-note">
@@ -82,26 +172,26 @@
         </div>
       </section>
 
-      <section class="cta">
+      <!-- Bottom CTA -->
+      <section class="cta-bottom">
+        <a class="btn-primary" id="buy-bottom" href="#">Get Beacon — $3.99</a>
         <a
-          class="btn-primary"
-          id="buy"
-          href="https://github.com/danwalll/Beacon/releases/latest/download/Beacon-1.1.5-arm64.dmg"
+          class="btn-secondary"
+          href="https://github.com/danwalll/Beacon/releases/latest"
+          target="_blank"
+          rel="noopener noreferrer"
         >
-          Get Beacon for Mac — $3.99
+          Download free from GitHub
         </a>
-        <p class="cta-sub">
-          One-time purchase. No subscription. Runs locally on your Mac.
-        </p>
-        <p class="cta-fine" id="download">
-          <strong>Payment link coming soon</strong> — button currently downloads the
-          latest build. Apple Silicon (M1–M4). After purchase you’ll receive the
-          <strong>.dmg</strong>. First open: right-click → Open if macOS asks.
-        </p>
       </section>
 
       <footer>
-        <p>Beacon · amber = working · green = done · rose = needs you</p>
+        <p>
+          macOS 13+ · Apple Silicon (M1–M4) · Works with Cursor, Claude, and ChatGPT
+        </p>
+        <p class="footer-fine">
+          First open: right-click → Open if macOS asks. v1.1.5
+        </p>
       </footer>
     </main>
     <script src="script.js"></script>

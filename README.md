@@ -4,6 +4,8 @@ Amber = working · Rose = needs you · Green = done
 
 Floating orbs on your desktop — one per app — so you always know when an AI agent needs you.
 
+**Landing page:** [danwalll.github.io/Beacon](https://danwalll.github.io/Beacon/) · local preview: `open landing/index.html`
+
 ## Install (for anyone)
 
 1. Get the latest **Beacon DMG** from [Releases](https://github.com/danwalll/Beacon/releases) — `Beacon-*-arm64.dmg` on Apple Silicon
