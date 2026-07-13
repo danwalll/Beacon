@@ -1,0 +1,70 @@
+{
+  "name": "beacon",
+  "version": "1.0.0",
+  "description": "Always-on-top desktop beacon that lights up when Cursor agents finish",
+  "main": "electron/main.js",
+  "private": true,
+  "author": "Beacon",
+  "productName": "Beacon",
+  "scripts": {
+    "start": "electron .",
+    "beacon": "electron .",
+    "install:hooks": "node scripts/install-hooks.js",
+    "demo:working": "node scripts/notify.js working cursor",
+    "demo:done": "node scripts/notify.js done cursor",
+    "demo:idle": "node scripts/notify.js idle",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder --mac",
+    "dist:zip": "electron-builder --mac zip"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "electron": "^37.2.0",
+    "electron-builder": "^26.0.12"
+  },
+  "build": {
+    "productName": "Beacon",
+    "appId": "com.beacon.app",
+    "files": [
+      "electron/**/*",
+      "ui/**/*",
+      "scripts/install-hooks.js",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "hooks",
+        "to": "hooks",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "scripts/install-hooks.js",
+        "to": "install-hooks.js"
+      }
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "mac": {
+      "category": "public.app-category.productivity",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": ["arm64", "x64"]
+        },
+        {
+          "target": "zip",
+          "arch": ["arm64", "x64"]
+        }
+      ],
+      "hardenedRuntime": false,
+      "gatekeeperAssess": false,
+      "identity": null
+    },
+    "dmg": {
+      "title": "Beacon"
+    }
+  }
+}

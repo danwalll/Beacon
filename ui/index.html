@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Agent Beacon</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <button id="beacon" class="beacon idle" type="button" aria-label="Agent Beacon">
+      <span class="ring"></span>
+      <span class="core"></span>
+      <span class="label" id="label"></span>
+    </button>
+    <script src="renderer.js"></script>
+  </body>
+</html>
